@@ -10,6 +10,7 @@ from light_classification.tl_classifier import TLClassifier
 import tf
 import cv2
 import yaml
+import numpy as np
 
 STATE_COUNT_THRESHOLD = 3
 
@@ -22,8 +23,9 @@ class TLDetector(object):
         self.camera_image = None
         self.lights = []
 
-        sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-        sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        self.base_waypoints = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        self.vehicle_traffic_lights = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
+        self.current_pose = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
 
         '''
         /vehicle/traffic_lights provides you with the location of the traffic light in 3D map space and
@@ -32,7 +34,6 @@ class TLDetector(object):
         simulator. When testing on the vehicle, the color state will not be available. You'll need to
         rely on the position of the light and the camera image to predict it.
         '''
-        sub3 = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
         sub6 = rospy.Subscriber('/image_color', Image, self.image_cb)
 
         config_string = rospy.get_param("/traffic_light_config")
@@ -52,12 +53,79 @@ class TLDetector(object):
         rospy.spin()
 
     def pose_cb(self, msg):
-        self.pose = msg
+        #Each time the position is changed, determine which traffic light is closest
+        #and which waypoint is closest to that traffic light
+        traffic_light_distances = []
+        waypoint_distances = []
+        #Transform all traffic light coordinates into the current_position coordinate space
+        # create variables obtaining the placement of the vehicle
+        cx_position = msg.pose.orientation.x
+        cy_position = msg.pose.orientation.y
+        cz_position = msg.pose.orientation.z
+        cw_position = msg.pose.orientation.w
+        for each_traffic_light in self.vehicle_traffic_lights.lights:
+            #create variables for the placement of the traffic_light
+            each_traffic_lightx = each_traffic_light.pose.pose.orientation.x
+            each_traffic_lighty = each_traffic_light.pose.pose.orientation.y
+            each_traffic_lightz = each_traffic_light.pose.pose.orientation.z
+            # transform the waypoint
+            shift_x = each_traffic_lightx - cx_position
+            shift_y = each_traffic_lighty - cy_position
+            each_traffic_lightx = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position)
+            each_traffic_lighty = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
+            #append distance if x is positive, otherwise append a large number
+            if each_traffic_lightx > 0:
+                traffic_light_distances.append((each_traffic_lightx**2 + each_traffic_lighty**2*1.0)**(1.0/2))
+            else:
+                traffic_light_distances.append(100000000)
+        #find the smallest distance to a traffic light
+        nearest_light = np.amin(traffic_light_distances)
+        #Transform all waypoint coordinates into the current position coordinate space
+        for each_waypoint in self.base_waypoints.waypoints:
+            #create variables for the placement of the waypoint
+            each_waypointx = each_waypoint.pose.pose.orientation.x
+            each_waypointy = each_waypoint.pose.pose.orientation.y
+            each_waypointz = each_waypoint.pose.pose.orientation.z
+            # transform the waypoint
+            shift_x = each_waypointx - cx_position
+            shift_y = each_waypointy - cy_position
+            each_waypointx = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position)
+            each_waypointy = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
+            #append the distance if x is positive and smaller than the nearest light's distance, otherwise append a small number
+            if (each_waypointx > 0 and each_waypointx < nearest_light):
+                waypoint_distances.append((each_waypointx**2 + each_waypointy**2*1.0)**(1.0/2))
+            else:
+                waypoint_distances.append(-1)
+        #find the index of the largest distanced waypoint (which is the one closest to the nearest light)
+        self.stopping_waypoint_index = np.argmax(waypoint_distances)
+        pass
 
-    def waypoints_cb(self, waypoints):
-        self.waypoints = waypoints
+    def waypoints_cb(self, msg):
+        #Record the x and y coordinate of each waypoint
+        waypoints = []
+        for each_waypoint in msg.waypoints:
+            waypoints.append([each_waypoint.pose.pose.position.x, each_waypoint.pose.pose.position.y])
+        self.waypoints = np.array(waypoints)
+        pass
 
     def traffic_cb(self, msg):
+        #Record the x and y coordinate of each traffic_light
+        traffic_light_coords = []
+        for each_traffic_light in msg.lights:
+            traffic_light_coords.append([each_traffic_light.pose.pose.position.x , each_traffic_light.pose.pose.position.y])
+        self.traffic_light_coords = np.array(traffic_light_coords)
+        pass
+        #For each traffic light, find the indices of the closest waypoints before and after the traffic light.
+        #Save their indices in a list
+        for each_traffic_light in msg.lights:
+            #obtain the x coordinate of the traffic light
+            traffic_light_x = [each_traffic_light.pose.pose.position.x , each_traffic_light.pose.pose.position.y]
+            #transform the coordinate space with respect to the traffic light. Use its closest coordinate waypoint coordinate
+            #for the appropriate angle.
+            #find the indices of the waypoints before and after it.
+            #subtract the traffic light from the waypoints array, so the positive points are ahead and negative behind
+            self.waypoints_light = self.waypoints - traffic_light_x
+            index_before = self.waypoints_light[np.where(self.waypoints_light<0)[0]].argmax
         self.lights = msg.lights
 
     def image_cb(self, msg):

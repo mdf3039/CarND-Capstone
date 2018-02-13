@@ -45,6 +45,23 @@ class DBWNode(object):
         steer_ratio = rospy.get_param('~steer_ratio', 14.8)
         max_lat_accel = rospy.get_param('~max_lat_accel', 3.)
         max_steer_angle = rospy.get_param('~max_steer_angle', 8.)
+        
+        # TODO: Subscribe to all the topics you need to
+        self.current_velocity = 0
+        self.current_angular_velocity = 0
+        self.current_velocity_sub = rospy.Subscriber('/current_velocity', geometry_msgs/TwistStamped, current_velocity_function)
+        self.linear_velocity = 0
+        self.angular_velocity = 0
+        self.twist_cmd = rospy.Subscriber('/twist_cmd', geometry_msgs/TwistStamped, twist_cmd_function)
+        self.dbw_enabled_bool = False
+        self.dbw_enabled = rospy.Subscriber('/vehicle/dbw_enabled', Bool, dbw_enabled_function)
+
+        # obtain min_speed for the yaw controller by adding the deceleration times time to the current velocity
+        self.min_speed = 0 #max(0, decel_limit*time + self.current_velocity(needs to be finished))
+
+        # TODO: Create `Controller` object
+        # The Controller object returns the throttle and brake.
+        self.controller = Controller(wheel_base, steer_ratio, min_speed, max_lat_accel, max_steer_angle, vehicle_mass, wheel_radius)
 
         self.steer_pub = rospy.Publisher('/vehicle/steering_cmd',
                                          SteeringCmd, queue_size=1)
@@ -53,25 +70,36 @@ class DBWNode(object):
         self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
                                          BrakeCmd, queue_size=1)
 
-        # TODO: Create `Controller` object
-        # self.controller = Controller(<Arguments you wish to provide>)
-
-        # TODO: Subscribe to all the topics you need to
-
         self.loop()
+    
+    def dbw_enabled_function(self,msg):
+        self.dbw_enabled_bool =  msg.data
+        pass
+    
+    def twist_cmd_function(self,msg):
+        # obtain linear velocity for yaw controller
+        self.linear_velocity = (msg.twist.linear.x**2 + msg.twist.linear.y**2 + msg.twist.linear.z**2 * 1.0)**(1.0/2)
+        # obtain angular velocity for yaw controller
+        self.angular_velocity = (msg.twist.angular.x**2 + msg.twist.angular.y**2 + msg.twist.angular.z**2 * 1.0)**(1.0/2)
+        #decide whether the angle is positive or negative
+        self.steer_direction = msg.twist.angular.z<0
+        pass
+
+    def current_velocity_function(self,msg):
+        # obtain current_velocity for yaw controller
+        self.current_velocity = (msg.twist.linear.x**2 + msg.twist.linear.y**2 + msg.twist.linear.z**2 * 1.0)**(1.0/2)
+        #obtain current_angular_velocity for controller
+        self.current_angular_velocity = (msg.twist.angular.x**2 + msg.twist.angular.y**2 + msg.twist.angular.z**2 * 1.0)**(1.0/2)
 
     def loop(self):
         rate = rospy.Rate(50) # 50Hz
         while not rospy.is_shutdown():
             # TODO: Get predicted throttle, brake, and steering using `twist_controller`
             # You should only publish the control commands if dbw is enabled
-            # throttle, brake, steering = self.controller.control(<proposed linear velocity>,
-            #                                                     <proposed angular velocity>,
-            #                                                     <current linear velocity>,
-            #                                                     <dbw status>,
-            #                                                     <any other argument you need>)
-            # if <dbw is enabled>:
-            #   self.publish(throttle, brake, steer)
+            throttle, brake, steer = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
+                                                                                self.current_velocity, self.current_angular_velocity, self.steer_direction)
+            if self.dbw_enabled_bool:
+                self.publish(throttle, brake, steer)
             rate.sleep()
 
     def publish(self, throttle, brake, steer):
