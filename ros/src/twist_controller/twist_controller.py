@@ -25,7 +25,7 @@ class Controller(object):
             #Use a throttle formula that represents the current velocity and desired velocity
             throttle = current_velocity*0.0113 + (linear_velocity-current_velocity)*1.0/40
             return throttle, 0, steer_angle
-        else if current_velocity > linear_velocity:
+        elif current_velocity > linear_velocity:
             #Use the brake formula, mass*deceleration*wheel_radius
             brake = self.vehicle_mass * (current_velocity-linear_velocity)*self.wheel_radius
             return 0, brake, steer_angle
