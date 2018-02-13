@@ -82,7 +82,9 @@ class DBWNode(object):
         # obtain angular velocity for yaw controller
         self.angular_velocity = (msg.twist.angular.x**2 + msg.twist.angular.y**2 + msg.twist.angular.z**2 * 1.0)**(1.0/2)
         #decide whether the angle is positive or negative
-        self.steer_direction = msg.twist.angular.z<0
+        self.steer_direction = 0
+        if msg.twist.angular.z<0:
+            self.steer_direction = 1
         pass
 
     def current_velocity_function(self,msg):
@@ -96,8 +98,7 @@ class DBWNode(object):
         while not rospy.is_shutdown():
             # TODO: Get predicted throttle, brake, and steering using `twist_controller`
             # You should only publish the control commands if dbw is enabled
-            throttle, brake, steer = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
-                                                                                self.current_velocity, self.current_angular_velocity, self.steer_direction)
+            throttle, brake, steer = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, self.current_velocity, self.current_angular_velocity, self.steer_direction)
             if self.dbw_enabled_bool:
                 self.publish(throttle, brake, steer)
             rate.sleep()
