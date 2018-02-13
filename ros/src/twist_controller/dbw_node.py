@@ -49,12 +49,12 @@ class DBWNode(object):
         # TODO: Subscribe to all the topics you need to
         self.current_velocity = 0
         self.current_angular_velocity = 0
-        self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, current_velocity_function)
+        self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
         self.linear_velocity = 0
         self.angular_velocity = 0
-        self.twist_cmd = rospy.Subscriber('/twist_cmd', TwistStamped, twist_cmd_function)
+        self.twist_cmd = rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_function)
         self.dbw_enabled_bool = False
-        self.dbw_enabled = rospy.Subscriber('/vehicle/dbw_enabled', Bool, dbw_enabled_function)
+        self.dbw_enabled = rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_function)
 
         # obtain min_speed for the yaw controller by adding the deceleration times time to the current velocity
         self.min_speed = 0 #max(0, decel_limit*time + self.current_velocity(needs to be finished))
