@@ -52,6 +52,7 @@ class DBWNode(object):
         self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
         self.linear_velocity = 0
         self.angular_velocity = 0
+        self.steer_direction = 0
         self.twist_cmd = rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_function)
         self.dbw_enabled_bool = False
         self.dbw_enabled = rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_function)
