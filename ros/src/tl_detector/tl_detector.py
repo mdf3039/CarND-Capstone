@@ -199,6 +199,57 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
+        #Each time the position is changed, determine which traffic light is closest
+        #and which waypoint is closest to that traffic light
+        traffic_light_distances = []
+        waypoint_distances = []
+        #Transform all traffic light coordinates into the current_position coordinate space
+        # create variables obtaining the placement of the vehicle
+        cx_position = self.current_pose.pose.orientation.x
+        cy_position = self.current_pose.pose.orientation.y
+        cz_position = self.current_pose.pose.orientation.z
+        cw_position = self.current_pose.pose.orientation.w
+        for each_traffic_light in self.vehicle_traffic_lights.lights:
+            #create variables for the placement of the traffic_light
+            each_traffic_lightx = each_traffic_light.pose.pose.orientation.x
+            each_traffic_lighty = each_traffic_light.pose.pose.orientation.y
+            each_traffic_lightz = each_traffic_light.pose.pose.orientation.z
+            # transform the waypoint
+            shift_x = each_traffic_lightx - cx_position
+            shift_y = each_traffic_lighty - cy_position
+            each_traffic_lightx = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position)
+            each_traffic_lighty = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
+            #append distance if x is positive, otherwise append a large number
+            if each_traffic_lightx > 0:
+                traffic_light_distances.append((each_traffic_lightx**2 + each_traffic_lighty**2*1.0)**(1.0/2))
+            else:
+                traffic_light_distances.append(100000000)
+        #find the smallest distance to a traffic light
+        nearest_light = np.amin(traffic_light_distances)
+        #Find the ID of the traffic light color
+        if all(traffic_light_distances == 100000000):
+            return -1, TrafficLight.UNKNOWN
+        #Transform all waypoint coordinates into the current position coordinate space
+        for each_waypoint in self.base_waypoints.waypoints:
+            #create variables for the placement of the waypoint
+            each_waypointx = each_waypoint.pose.pose.orientation.x
+            each_waypointy = each_waypoint.pose.pose.orientation.y
+            each_waypointz = each_waypoint.pose.pose.orientation.z
+            # transform the waypoint
+            shift_x = each_waypointx - cx_position
+            shift_y = each_waypointy - cy_position
+            each_waypointx = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position)
+            each_waypointy = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
+            wp_distance = (each_waypointx**2 + each_waypointy**2*1.0)**(1.0/2)
+            #append the distance if x is positive and smaller than the nearest light's distance, otherwise append a small number
+            if (each_waypointx > 0 and wp_distance < nearest_light):
+                waypoint_distances.append(wp_distance)
+            else:
+                waypoint_distances.append(-1)
+        #find the index of the largest distanced waypoint (which is the one closest to the nearest light)
+        self.stopping_waypoint_index = np.argmax(waypoint_distances)
+
+
         light = None
 
         # List of positions that correspond to the line to stop in front of for a given intersection
@@ -212,7 +263,7 @@ class TLDetector(object):
             state = self.get_light_state(light)
             return light_wp, state
         self.waypoints = None
-        return -1, TrafficLight.UNKNOWN
+        return self.stopping_waypoint_index, TrafficLight.UNKNOWN
 
 if __name__ == '__main__':
     try:
