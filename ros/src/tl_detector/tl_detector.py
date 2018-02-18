@@ -27,9 +27,9 @@ class TLDetector(object):
         self.camera_image = None
         self.lights = []
 
-        self.base_waypoints = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
-        self.vehicle_traffic_lights = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
-        self.current_pose = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+        self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        self.vehicle_traffic_lights_sub = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
+        self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         self.current_velocity = 0
         self.current_angular_velocity = 0
         self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
@@ -41,7 +41,7 @@ class TLDetector(object):
         simulator. When testing on the vehicle, the color state will not be available. You'll need to
         rely on the position of the light and the camera image to predict it.
         '''
-        sub6 = rospy.Subscriber('/image_color', Image, self.image_cb)
+        sub6_sub = rospy.Subscriber('/image_color', Image, self.image_cb)
 
         config_string = rospy.get_param("/traffic_light_config")
         self.config = yaml.load(config_string)
@@ -147,7 +147,7 @@ class TLDetector(object):
         #         waypoint_distances.append(-1)
         # #find the index of the largest distanced waypoint (which is the one closest to the nearest light)
         # self.stopping_waypoint_index = np.argmax(waypoint_distances)
-        pass
+        self.current_pose = msg
 
     def waypoints_cb(self, msg):
         # #Record the x and y coordinate of each waypoint
@@ -155,7 +155,7 @@ class TLDetector(object):
         # for each_waypoint in msg.waypoints:
         #     waypoints.append([each_waypoint.pose.pose.position.x, each_waypoint.pose.pose.position.y])
         # self.waypoints = np.array(waypoints)
-        pass
+        self.base_waypoints = msg
 
     def traffic_cb(self, msg):
         # #Record the x and y coordinate of each traffic_light
@@ -176,7 +176,7 @@ class TLDetector(object):
         #     self.waypoints_light = self.waypoints - traffic_light_x
         #     index_before = self.waypoints_light[np.where(self.waypoints_light<0)[0]].argmax
         # self.lights = msg.lights
-        pass
+        self.vehicle_traffic_lights = msg
 
     def image_cb(self, msg):
         """Identifies red lights in the incoming camera image and publishes the index
@@ -207,6 +207,7 @@ class TLDetector(object):
         else:
             self.upcoming_red_light_pub.publish(Int32(self.last_wp))
         self.state_count += 1
+        sub6 = msg
 
     def get_closest_waypoint(self, pose):
         """Identifies the closest path waypoint to the given position

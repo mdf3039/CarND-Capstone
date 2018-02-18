@@ -45,8 +45,8 @@ class WaypointUpdater(object):
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
-        self.base_waypoints = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
-        self.current_pose = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+        self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
 
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
@@ -108,11 +108,11 @@ class WaypointUpdater(object):
         for each_index in self.oncoming_waypoints_distance_sorted:
             self.final_waypoints.waypoints.append(self.oncoming_waypoints.waypoints[each_index])
         self.final_waypoints_pub.publish(self.final_waypoints)
-        # pass
+        self.current_pose = msg
 
     def waypoints_cb(self, waypoints):
         # TODO: Implement
-        pass
+        self.base_waypoints = waypoints
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement

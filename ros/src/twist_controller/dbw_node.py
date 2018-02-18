@@ -53,9 +53,9 @@ class DBWNode(object):
         self.linear_velocity = 0
         self.angular_velocity = 0
         self.steer_direction = 0
-        self.twist_cmd = rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_function)
+        self.twist_cmd_sub = rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_function)
         self.dbw_enabled_bool = False
-        self.dbw_enabled = rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_function)
+        self.dbw_enabled_sub = rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_function)
 
         # obtain min_speed for the yaw controller by adding the deceleration times time to the current velocity
         self.min_speed = 0 #max(0, decel_limit*time + self.current_velocity(needs to be finished))
@@ -75,7 +75,7 @@ class DBWNode(object):
     
     def dbw_enabled_function(self,msg):
         self.dbw_enabled_bool =  msg.data
-        pass
+        self.dbw_enabled = msg
     
     def twist_cmd_function(self,msg):
         # obtain linear velocity for yaw controller
@@ -86,14 +86,14 @@ class DBWNode(object):
         self.steer_direction = 0
         if msg.twist.angular.z<0:
             self.steer_direction = 1
-        pass
+        self.twist_cmd = msg
 
     def current_velocity_function(self,msg):
         # obtain current_velocity for yaw controller
         self.current_velocity = (msg.twist.linear.x**2 + msg.twist.linear.y**2 + msg.twist.linear.z**2 * 1.0)**(1.0/2)
         #obtain current_angular_velocity for controller
         self.current_angular_velocity = (msg.twist.angular.x**2 + msg.twist.angular.y**2 + msg.twist.angular.z**2 * 1.0)**(1.0/2)
-        pass
+        # pass
 
     def loop(self):
         rate = rospy.Rate(50) # 50Hz
