@@ -42,6 +42,7 @@ class WaypointUpdater(object):
         #Set the previous velocities
         self.previous_previous_velocity = 0
         self.previous_velocity = 0
+        self.base_waypoints = None
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
