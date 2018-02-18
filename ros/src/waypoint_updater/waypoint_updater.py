@@ -81,7 +81,7 @@ class WaypointUpdater(object):
         self.oncoming_waypoints = Lane()
         self.oncoming_waypoints_distance = []
         print ("The BASE WAYPOINTS ARE OF TYPE: ", type(self.base_waypoints))
-        for each_waypoint in self.base_waypoints.waypoints:
+        for each_waypoint in self.base_waypoints:
             #create variables for the placement of the waypoint
             each_waypointx = each_waypoint.pose.pose.orientation.x
             each_waypointy = each_waypoint.pose.pose.orientation.y
@@ -148,7 +148,7 @@ class WaypointUpdater(object):
         #The message is a waypoint to stop at. Set a course to stop
         else:
             #Obtain waypoint
-            stop_line = self.base_waypoints.waypoints[msg]
+            stop_line = self.base_waypoints[msg]
             #Find the distance to the waypoint
             distance_to_stop_line = ((stop_line.pose.pose.orientation.x-self.current_pose.pose.orientation.x)**2 + (stop_line.pose.pose.orientation.y-self.current_pose.pose.orientation.y)**2 * 1.0)**(.5)
             if (self.current_velocity==0 or distance_to_stop_line<=9):
