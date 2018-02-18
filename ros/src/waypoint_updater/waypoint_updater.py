@@ -3,6 +3,7 @@
 import rospy
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
+from std_msgs.msg import Int32
 
 import math
 import numpy as np
@@ -24,23 +25,43 @@ TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 
 LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
 DISTANCE_AHEAD = 700 # Maximum distance ahead needed to look
+MAX_ACCELERATION = 9.0 
+MAX_JERK = 9.0
 
 
 class WaypointUpdater(object):
     def __init__(self):
         rospy.init_node('waypoint_updater')
 
-        self.base_waypoints = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
-        self.current_pose = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+        #Get the maximum velocity parameter
+        self.maximum_velocity = rospy.get_param('~velocity') * 1000.0 / 3600.0 - 1.0 # change km/h to m/s and subtract 1 to make sure it is always lower
 
-        # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
-
+        #Set an intial for a previous waypoint index
+        self.previous_waypoint_index = -1
+        #Set the previous velocities
+        self.previous_previous_velocity = 0
+        self.previous_velocity = 0
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
+
+        self.base_waypoints = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        self.current_pose = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+        self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
+
+        # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
+        self.traffic_waypoint = rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
+
 
         # TODO: Add other member variables you need below
 
         rospy.spin()
+
+    def current_velocity_function(self,msg):
+        # obtain current_velocity for yaw controller
+        self.current_velocity = (msg.twist.linear.x**2 + msg.twist.linear.y**2 + msg.twist.linear.z**2 * 1.0)**(1.0/2)
+        #obtain current_angular_velocity for controller
+        self.current_angular_velocity = (msg.twist.angular.x**2 + msg.twist.angular.y**2 + msg.twist.angular.z**2 * 1.0)**(1.0/2)
+        pass
 
     def pose_cb(self, msg):
         # TODO: Implement
@@ -91,6 +112,51 @@ class WaypointUpdater(object):
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
+        dist_from_pos = []
+        # Set the current velocity to the previous, previous to the previous_previous
+        self.previous_previous_velocity = self.previous_velocity
+        self.previous_velocity = self.current_velocity
+        #traffic light msg is either -2, -1, or the stopping index for the stopline to stop at
+        #if msg is -2, this means the traffic light is unknown. Use the previous traffic_light_message
+        if msg==-2:
+            msg = self.previous_waypoint_index
+        #If the msg is -1, this means pursue at full throttle (green light)
+        if msg==-1:
+            #set waypoints with respect to the current velocity and accelerate if needed
+            #the next velocity cannot exceed a certain acceleration or jerk threshold. See which 
+            #threshold is the smaller. The velocity cannot also be larger than the maximum velocity
+            max_v_acceleration = MAX_ACCELERATION*.2 + self.previous_velocity
+            max_v_jerk = .04*MAX_JERK + 2*self.previous_velocity - self.previous_previous_velocity
+            max_v = min(max_v_jerk, max_v_acceleration, self.maximum_velocity)
+            #obtain the distance from the current position. 
+            dist_from_pos.append(.1*(max_v+self.previous_velocity))
+            #add on the other distances for the list
+            for i in range(LOOKAHEAD_WPS-1):
+                #if the maximum velocity will be reached in the next acceleration burst, or is the current velocity
+                if (self.maximum_velocity-max_v)/.2 <= MAX_ACCELERATION:
+                    dist_from_pos.append(dist_from_pos[-1] + .1*(max_v+self.maximum_velocity))
+                    max_v = self.maximum_velocity
+                else:
+                    dist_from_pos.append(dist_from_pos[-1] + .2*max_v + .5*MAX_ACCELERATION*(.2**2))
+                    max_v += MAX_ACCELERATION*.2
+        #The message is a waypoint to stop at. Set a course to stop
+        else:
+            #Obtain waypoint
+            stop_line = self.base_waypoints.waypoints[msg]
+            #Find the distance to the waypoint
+            distance_to_stop_line = ((stop_line.pose.pose.orientation.x-self.current_pose.pose.orientation.x)**2 + (stop_line.pose.pose.orientation.y-self.current_pose.pose.orientation.y)**2 * 1.0)**(.5)
+            if (self.current_velocity==0 or distance_to_stop_line<=9):
+                #If the velocity is zero, then the line is close. Move at a speed of 1m/s towards the line
+                for i in range(min(LOOKAHEAD_WPS,int(math.floor(distance_to_stop_line/0.2)))):
+                    dist_from_pos.append((i+1)*.2)
+                #complete whatever is left with the last entry (thereby not moving)
+                for i in range(LOOKAHEAD_WPS-len(dist_from_pos)):
+                    dist_from_pos.append(dist_from_pos[-1])
+            else:
+                #
+
+
+
         pass
 
     def obstacle_cb(self, msg):

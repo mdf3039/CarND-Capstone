@@ -93,6 +93,7 @@ class DBWNode(object):
         self.current_velocity = (msg.twist.linear.x**2 + msg.twist.linear.y**2 + msg.twist.linear.z**2 * 1.0)**(1.0/2)
         #obtain current_angular_velocity for controller
         self.current_angular_velocity = (msg.twist.angular.x**2 + msg.twist.angular.y**2 + msg.twist.angular.z**2 * 1.0)**(1.0/2)
+        pass
 
     def loop(self):
         rate = rospy.Rate(50) # 50Hz
