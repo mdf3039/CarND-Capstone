@@ -35,7 +35,7 @@ class WaypointUpdater(object):
         rospy.init_node('waypoint_updater')
 
         #Get the maximum velocity parameter
-        self.maximum_velocity = rospy.get_param('~velocity') * 1000.0 / 3600.0 - 1.0 # change km/h to m/s and subtract 1 to make sure it is always lower
+        self.maximum_velocity = self.kmph2mps(rospy.get_param('~velocity')) # change km/h to m/s and subtract 1 to make sure it is always lower
 
         #Set an intial for a previous waypoint index
         self.previous_waypoint_index = -1
@@ -56,6 +56,9 @@ class WaypointUpdater(object):
         # TODO: Add other member variables you need below
 
         rospy.spin()
+
+    def kmph2mps(self, velocity_kmph):
+        return (velocity_kmph * 1000.) / (60. * 60.)
 
     def current_velocity_function(self,msg):
         # obtain current_velocity for yaw controller
@@ -167,7 +170,7 @@ class WaypointUpdater(object):
                     if min_v==0:
                         dist_from_pos.append(dist_from_pos[-1])
                     #if the target velocity will be reached in the next deceleration burst, decelerate at a rate of 1m/s
-                    if (3-min_v)/.2 => -1*MAX_DECELERATION:
+                    if (3-min_v)/.2 >= -1*MAX_DECELERATION:
                         dist_from_pos.append(dist_from_pos[-1] + .1*(min_v+self.maximum_velocity))
                         min_v = self.maximum_velocity
                     else:

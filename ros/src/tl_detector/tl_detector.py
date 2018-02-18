@@ -20,7 +20,7 @@ class TLDetector(object):
         rospy.init_node('tl_detector')
 
         #Get the maximum velocity parameter
-        self.maximum_velocity = rospy.get_param('~velocity') * 1000.0 / 3600.0 # change km/h to m/s
+        self.maximum_velocity = self.kmph2mps(rospy.get_param('~velocity')) # change km/h to m/s
 
         self.pose = None
         self.waypoints = None
@@ -90,6 +90,9 @@ class TLDetector(object):
         
 
         rospy.spin()
+
+    def kmph2mps(self, velocity_kmph):
+        return (velocity_kmph * 1000.) / (60. * 60.)
 
     def current_velocity_function(self,msg):
         # obtain current_velocity for yaw controller
