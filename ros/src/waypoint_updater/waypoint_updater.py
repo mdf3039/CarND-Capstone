@@ -79,6 +79,7 @@ class WaypointUpdater(object):
         # the points will need to be transformed into the vehicle's coordinate space
         self.oncoming_waypoints = Lane()
         self.oncoming_waypoints_distance = []
+        print ("The BASE WAYPOINTS ARE OF TYPE: ", type(self.base_waypoints))
         for each_waypoint in self.base_waypoints.waypoints:
             #create variables for the placement of the waypoint
             each_waypointx = each_waypoint.pose.pose.orientation.x
@@ -112,7 +113,7 @@ class WaypointUpdater(object):
 
     def waypoints_cb(self, waypoints):
         # TODO: Implement
-        self.base_waypoints = waypoints
+        self.base_waypoints = waypoints.waypoints
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
