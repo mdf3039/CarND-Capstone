@@ -102,6 +102,7 @@ class TLDetector(object):
         pass
 
     def pose_cb(self, msg):
+        self.current_pose = msg
         # #Each time the position is changed, determine which traffic light is closest
         # #and which waypoint is closest to that traffic light
         # traffic_light_distances = []
@@ -147,7 +148,6 @@ class TLDetector(object):
         #         waypoint_distances.append(-1)
         # #find the index of the largest distanced waypoint (which is the one closest to the nearest light)
         # self.stopping_waypoint_index = np.argmax(waypoint_distances)
-        self.current_pose = msg
 
     def waypoints_cb(self, msg):
         # #Record the x and y coordinate of each waypoint
