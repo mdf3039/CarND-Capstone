@@ -257,7 +257,7 @@ class TLDetector(object):
         waypoint_distances = []
         #Transform all traffic light coordinates into the current_position coordinate space
         # create variables obtaining the placement of the vehicle
-        if current_pose is None:
+        if self.current_pose is None:
             return 0, TrafficLight.UNKNOWN, 1000
         cx_position = self.current_pose.pose.orientation.x
         cy_position = self.current_pose.pose.orientation.y
