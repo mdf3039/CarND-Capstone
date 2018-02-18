@@ -27,6 +27,7 @@ LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this n
 DISTANCE_AHEAD = 700 # Maximum distance ahead needed to look
 MAX_ACCELERATION = 9.0 
 MAX_JERK = 9.0
+MAX_DECELERATION = 5.0
 
 
 class WaypointUpdater(object):
@@ -61,7 +62,7 @@ class WaypointUpdater(object):
         self.current_velocity = (msg.twist.linear.x**2 + msg.twist.linear.y**2 + msg.twist.linear.z**2 * 1.0)**(1.0/2)
         #obtain current_angular_velocity for controller
         self.current_angular_velocity = (msg.twist.angular.x**2 + msg.twist.angular.y**2 + msg.twist.angular.z**2 * 1.0)**(1.0/2)
-        pass
+        # pass
 
     def pose_cb(self, msg):
         # TODO: Implement
@@ -104,7 +105,7 @@ class WaypointUpdater(object):
         for each_index in self.oncoming_waypoints_distance_sorted:
             self.final_waypoints.waypoints.append(self.oncoming_waypoints.waypoints[each_index])
         self.final_waypoints_pub.publish(self.final_waypoints)
-        pass
+        # pass
 
     def waypoints_cb(self, waypoints):
         # TODO: Implement
@@ -153,11 +154,26 @@ class WaypointUpdater(object):
                 for i in range(LOOKAHEAD_WPS-len(dist_from_pos)):
                     dist_from_pos.append(dist_from_pos[-1])
             else:
-                #
-
-
-
-        pass
+                #decrease speed. The next velocity cannot exceed a certain acceleration or jerk
+                #threshold. See which threshold is smaller. The velocity cannot also be larger than the maximum velocity
+                min_v_acceleration = -1*MAX_DECELERATION*.2 + self.previous_velocity
+                min_v_jerk = .04*-1*MAX_JERK + 2*self.previous_velocity - self.previous_previous_velocity
+                min_v = max(min_v_jerk, min_v_acceleration, 0)
+                #obtain the distance from the current position. 
+                dist_from_pos.append(.1*(min_v+self.previous_velocity))
+                #add on the other distances for the list
+                for i in range(LOOKAHEAD_WPS-1):
+                    #if the velocity is zero, append the previous entry
+                    if min_v==0:
+                        dist_from_pos.append(dist_from_pos[-1])
+                    #if the target velocity will be reached in the next deceleration burst, decelerate at a rate of 1m/s
+                    if (3-min_v)/.2 => -1*MAX_DECELERATION:
+                        dist_from_pos.append(dist_from_pos[-1] + .1*(min_v+self.maximum_velocity))
+                        min_v = self.maximum_velocity
+                    else:
+                        dist_from_pos.append(dist_from_pos[-1] + .2*min_v + .5*MAX_ACCELERATION*(.2**2))
+                        min_v += MAX_ACCELERATION*.2
+        # pass
 
     def obstacle_cb(self, msg):
         # TODO: Callback for /obstacle_waypoint message. We will implement it later
