@@ -49,7 +49,7 @@ class WaypointUpdater(object):
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
-        self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        # self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
         # self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
         # self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
 
@@ -62,6 +62,10 @@ class WaypointUpdater(object):
 
     def loop(self):
         rate = rospy.Rate(5) # 50Hz
+        while self.base_waypoints is None:
+            rospy.loginfo("Trying to find the base waypoints. Can't start without them")
+            self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        rospy.loginfo("Base waypoints found with a length of: " + str(len(self.base_waypoints)))
         while not rospy.is_shutdown():
             # The callback_function for the '/current_pose' provides oncoming_waypoints
             # and their distances from the '/current_pose'. Put them into self.final_waypoints
@@ -79,6 +83,7 @@ class WaypointUpdater(object):
             # create a final_waypoints
             self.final_waypoints = Lane()
             # add the waypoints to the final_waypoints with respect to the sorted distance. Also change the speed to the max_velocity
+            rospy.loginfo("The number of oncoming waypoints are " + str(len(self.oncoming_waypoints_distance_sorted)))
             for each_index in self.oncoming_waypoints_distance_sorted:
                 self.final_waypoints.waypoints.append(self.oncoming_waypoints.waypoints[each_index])
                 #Also change the speed to the max_velocity
@@ -151,7 +156,9 @@ class WaypointUpdater(object):
 
     def waypoints_cb(self, waypoints):
         # TODO: Implement
+        rospy.loginfo("Oncoming Waypoints are loading")
         self.base_waypoints = waypoints.waypoints
+        rospy.loginfo("The number of oncoming waypoints are: " + str(len(waypoints.waypoints)))
 
     def traffic_cb(self, msg):
         msg = int(str(msg))
