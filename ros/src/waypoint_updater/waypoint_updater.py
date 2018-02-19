@@ -145,6 +145,7 @@ class WaypointUpdater(object):
         self.base_waypoints = waypoints.waypoints
 
     def traffic_cb(self, msg):
+        msg = int(msg)
         # TODO: Callback for /traffic_waypoint message. Implement
         dist_from_pos = []
         # Set the current velocity to the previous, previous to the previous_previous
