@@ -43,6 +43,8 @@ class WaypointUpdater(object):
         self.previous_previous_velocity = 0
         self.previous_velocity = 0
         self.base_waypoints = None
+        self.oncoming_waypoints_distance = []
+        self.oncoming_waypoints = None
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
@@ -64,6 +66,8 @@ class WaypointUpdater(object):
             # and their distances from the '/current_pose'. Put them into self.final_waypoints
             # by smallest distance to largest distance.
             # obtain a sorted list of indices from the distances
+            if self.oncoming_waypoints is None:
+                continue
             self.oncoming_waypoints_distance_sorted = np.array(self.oncoming_waypoints_distance).argsort()[:LOOKAHEAD_WPS].astype(int).tolist()
             # create a final_waypoints
             self.final_waypoints = Lane()
