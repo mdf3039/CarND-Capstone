@@ -44,6 +44,7 @@ class WaypointUpdater(object):
         self.previous_velocity = 0
         self.base_waypoints = None
         self.oncoming_waypoints_distance = []
+        self.transformed_xy = []
         self.oncoming_waypoints = None
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
@@ -67,13 +68,19 @@ class WaypointUpdater(object):
             # by smallest distance to largest distance.
             # obtain a sorted list of indices from the distances
             if self.oncoming_waypoints is None:
+                rospy.loginfo("Oncoming Waypoints are not there")
                 continue
+            rospy.loginfo("Oncoming Waypoints arrived")
             self.oncoming_waypoints_distance_sorted = np.array(self.oncoming_waypoints_distance).argsort()[:LOOKAHEAD_WPS].astype(int).tolist()
             # create a final_waypoints
             self.final_waypoints = Lane()
             # add the waypoints to the final_waypoints with respect to the sorted distance
             for each_index in self.oncoming_waypoints_distance_sorted:
                 self.final_waypoints.waypoints.append(self.oncoming_waypoints.waypoints[each_index])
+            rospy.loginfo(self.final_waypoints)
+            # using the final waypoints, separate them out at a speed of maximum_velocity. 
+            # fit a polynomial with transformed points
+
             self.final_waypoints_pub.publish(self.final_waypoints)
             rate.sleep()
 
@@ -99,6 +106,7 @@ class WaypointUpdater(object):
         # the points will need to be transformed into the vehicle's coordinate space
         self.oncoming_waypoints = Lane()
         self.oncoming_waypoints_distance = []
+        self.transformed_xy = []
         #print ("The BASE WAYPOINTS ARE OF TYPE: ", type(self.base_waypoints))
         if self.base_waypoints is None:
             print "THE BASE WAYPOINTS ARE NOT THERE"
@@ -122,6 +130,14 @@ class WaypointUpdater(object):
                 self.oncoming_waypoints.waypoints.append(each_waypoint)
                 # add to the distance list holder
                 self.oncoming_waypoints_distance.append(waypoint_distance)
+                #add the transformed x and y to a list to store the transformed x and y. Use to make polynomial fitting later 
+                self.transformed_xy.append([each_waypointx,each_waypointy])
+        #fit the polynomial
+        self.transformed_xy = np.array(self.transformed_xy)
+        poly_output = np.poly1d(np.polyfit(self.transformed_xy[:,0], self.transformed_xy[:,1], 3))
+        #untransform the points
+        #for 
+
         self.current_pose = msg
 
     def waypoints_cb(self, waypoints):
