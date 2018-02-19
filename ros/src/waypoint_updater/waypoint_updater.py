@@ -47,8 +47,8 @@ class WaypointUpdater(object):
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
-        self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
+        self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
 
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
         self.traffic_waypoint = rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
@@ -81,6 +81,10 @@ class WaypointUpdater(object):
         self.oncoming_waypoints = Lane()
         self.oncoming_waypoints_distance = []
         #print ("The BASE WAYPOINTS ARE OF TYPE: ", type(self.base_waypoints))
+        if self.base_waypoints is None:
+            print "THE BASE WAYPOINTS ARE NOT THERE"
+            self.current_pose = msg
+            pass
         for each_waypoint in self.base_waypoints:
             #create variables for the placement of the waypoint
             each_waypointx = each_waypoint.pose.pose.orientation.x
