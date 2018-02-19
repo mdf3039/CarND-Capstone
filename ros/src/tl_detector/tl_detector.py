@@ -281,7 +281,8 @@ class TLDetector(object):
         #find the smallest distance to a traffic light
         nearest_light = np.amin(traffic_light_distances)
         #Find the ID of the traffic light color
-        if all(traffic_light_distances == 100000000):
+        #print(type(traffic_light_distances))
+        if (np.array(traffic_light_distances) == 100000000).all():
             return -1, TrafficLight.UNKNOWN
         #Transform all waypoint coordinates into the current position coordinate space
         for each_waypoint in self.base_waypoints.waypoints:
