@@ -55,8 +55,23 @@ class WaypointUpdater(object):
 
 
         # TODO: Add other member variables you need below
+        self.loop()
 
-        rospy.spin()
+    def loop(self):
+        rate = rospy.Rate(50) # 50Hz
+        while not rospy.is_shutdown():
+            # The callback_function for the '/current_pose' provides oncoming_waypoints
+            # and their distances from the '/current_pose'. Put them into self.final_waypoints
+            # by smallest distance to largest distance.
+            # obtain a sorted list of indices from the distances
+            self.oncoming_waypoints_distance_sorted = np.array(self.oncoming_waypoints_distance).argsort()[:LOOKAHEAD_WPS].astype(int).tolist()
+            # create a final_waypoints
+            self.final_waypoints = Lane()
+            # add the waypoints to the final_waypoints with respect to the sorted distance
+            for each_index in self.oncoming_waypoints_distance_sorted:
+                self.final_waypoints.waypoints.append(self.oncoming_waypoints.waypoints[each_index])
+            self.final_waypoints_pub.publish(self.final_waypoints)
+            rate.sleep()
 
     def kmph2mps(self, velocity_kmph):
         return (velocity_kmph * 1000.) / (60. * 60.)
@@ -103,17 +118,6 @@ class WaypointUpdater(object):
                 self.oncoming_waypoints.waypoints.append(each_waypoint)
                 # add to the distance list holder
                 self.oncoming_waypoints_distance.append(waypoint_distance)
-        # The callback_function for the '/current_pose' provides oncoming_waypoints
-        # and their distances from the '/current_pose'. Put them into self.final_waypoints
-        # by smallest distance to largest distance.
-        # obtain a sorted list of indices from the distances
-        self.oncoming_waypoints_distance_sorted = np.array(self.oncoming_waypoints_distance).argsort()[:LOOKAHEAD_WPS].astype(int).tolist()
-        # create a final_waypoints
-        self.final_waypoints = Lane()
-        # add the waypoints to the final_waypoints with respect to the sorted distance
-        for each_index in self.oncoming_waypoints_distance_sorted:
-            self.final_waypoints.waypoints.append(self.oncoming_waypoints.waypoints[each_index])
-        self.final_waypoints_pub.publish(self.final_waypoints)
         self.current_pose = msg
 
     def waypoints_cb(self, waypoints):
