@@ -61,7 +61,7 @@ class WaypointUpdater(object):
         self.loop()
 
     def loop(self):
-        rate = rospy.Rate(50) # 50Hz
+        rate = rospy.Rate(1) # 50Hz
         while not rospy.is_shutdown():
             # The callback_function for the '/current_pose' provides oncoming_waypoints
             # and their distances from the '/current_pose'. Put them into self.final_waypoints
