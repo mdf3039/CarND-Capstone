@@ -84,7 +84,7 @@ class WaypointUpdater(object):
         if self.base_waypoints is None:
             print "THE BASE WAYPOINTS ARE NOT THERE"
             self.current_pose = msg
-            pass
+            return
         for each_waypoint in self.base_waypoints:
             #create variables for the placement of the waypoint
             each_waypointx = each_waypoint.pose.pose.orientation.x
