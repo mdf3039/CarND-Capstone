@@ -82,7 +82,7 @@ class WaypointUpdater(object):
             for each_index in self.oncoming_waypoints_distance_sorted:
                 self.final_waypoints.waypoints.append(self.oncoming_waypoints.waypoints[each_index])
                 #Also change the speed to the max_velocity
-                self.final_waypoints.waypoints[-1].twist.twist.linear.x = 2#self.maximum_velocity
+                self.final_waypoints.waypoints[-1].twist.twist.linear.x = 6#self.maximum_velocity
                 rospy.loginfo(str(self.final_waypoints.waypoints[-1].twist.twist.linear.x))
                 rospy.loginfo(str(self.final_waypoints.waypoints[-1].pose.pose.position.x))
                 rospy.loginfo(str(self.final_waypoints.waypoints[-1].pose.pose.position.y))
