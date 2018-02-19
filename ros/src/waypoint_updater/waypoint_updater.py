@@ -134,7 +134,7 @@ class WaypointUpdater(object):
                 self.transformed_xy.append([each_waypointx,each_waypointy])
         #fit the polynomial
         self.transformed_xy = np.array(self.transformed_xy)
-        poly_output = np.poly1d(np.polyfit(self.transformed_xy[:,0].tolist(), self.transformed_xy[:,1].tolist(), 3))
+        #poly_output = np.poly1d(np.polyfit(self.transformed_xy[:,0].tolist(), self.transformed_xy[:,1].tolist(), 3))
         #untransform the points
         #for 
 
