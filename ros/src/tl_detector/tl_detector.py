@@ -283,7 +283,7 @@ class TLDetector(object):
         #Find the ID of the traffic light color
         #print(type(traffic_light_distances))
         if (np.array(traffic_light_distances) == 100000000).all():
-            return -1, TrafficLight.UNKNOWN
+            return -1, TrafficLight.UNKNOWN, 1000
         #Transform all waypoint coordinates into the current position coordinate space
         for each_waypoint in self.base_waypoints.waypoints:
             #create variables for the placement of the waypoint
