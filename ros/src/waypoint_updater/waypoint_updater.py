@@ -68,7 +68,9 @@ class WaypointUpdater(object):
             # by smallest distance to largest distance.
             # obtain a sorted list of indices from the distances
             self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
+            rospy.loginfo("Getting current position")
             self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+            rospy.loginfo("Current positon obtained")
             if self.oncoming_waypoints is None:
                 rospy.loginfo("Oncoming Waypoints are not there")
                 continue
@@ -80,8 +82,11 @@ class WaypointUpdater(object):
             for each_index in self.oncoming_waypoints_distance_sorted:
                 self.final_waypoints.waypoints.append(self.oncoming_waypoints.waypoints[each_index])
                 #Also change the speed to the max_velocity
-                self.final_waypoints.waypoints[-1].twist.twist.linear.x = self.maximum_velocity
-            rospy.loginfo(self.final_waypoints)
+                self.final_waypoints.waypoints[-1].twist.twist.linear.x = 2#self.maximum_velocity
+                rospy.loginfo(str(self.final_waypoints.waypoints[-1].twist.twist.linear.x))
+                rospy.loginfo(str(self.final_waypoints.waypoints[-1].pose.pose.position.x))
+                rospy.loginfo(str(self.final_waypoints.waypoints[-1].pose.pose.position.y))
+            #rospy.loginfo(self.final_waypoints)
             # using the final waypoints, separate them out at a speed of maximum_velocity. 
             # fit a polynomial with transformed points
 
