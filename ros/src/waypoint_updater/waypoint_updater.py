@@ -67,6 +67,7 @@ class WaypointUpdater(object):
             # and their distances from the '/current_pose'. Put them into self.final_waypoints
             # by smallest distance to largest distance.
             # obtain a sorted list of indices from the distances
+            self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
             if self.oncoming_waypoints is None:
                 rospy.loginfo("Oncoming Waypoints are not there")
                 continue
