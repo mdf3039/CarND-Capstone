@@ -50,23 +50,24 @@ class WaypointUpdater(object):
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
-        self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
-        self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+        # self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
+        # self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
 
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
-        self.traffic_waypoint = rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
+        #self.traffic_waypoint = rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
 
 
         # TODO: Add other member variables you need below
         self.loop()
 
     def loop(self):
-        rate = rospy.Rate(1) # 50Hz
+        rate = rospy.Rate(5) # 50Hz
         while not rospy.is_shutdown():
             # The callback_function for the '/current_pose' provides oncoming_waypoints
             # and their distances from the '/current_pose'. Put them into self.final_waypoints
             # by smallest distance to largest distance.
             # obtain a sorted list of indices from the distances
+            self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
             self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
             if self.oncoming_waypoints is None:
                 rospy.loginfo("Oncoming Waypoints are not there")
@@ -75,9 +76,11 @@ class WaypointUpdater(object):
             self.oncoming_waypoints_distance_sorted = np.array(self.oncoming_waypoints_distance).argsort()[:LOOKAHEAD_WPS].astype(int).tolist()
             # create a final_waypoints
             self.final_waypoints = Lane()
-            # add the waypoints to the final_waypoints with respect to the sorted distance
+            # add the waypoints to the final_waypoints with respect to the sorted distance. Also change the speed to the max_velocity
             for each_index in self.oncoming_waypoints_distance_sorted:
                 self.final_waypoints.waypoints.append(self.oncoming_waypoints.waypoints[each_index])
+                #Also change the speed to the max_velocity
+                self.final_waypoints.waypoints[-1].twist.twist.linear.x = self.maximum_velocity
             rospy.loginfo(self.final_waypoints)
             # using the final waypoints, separate them out at a speed of maximum_velocity. 
             # fit a polynomial with transformed points

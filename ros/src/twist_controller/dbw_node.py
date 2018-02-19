@@ -49,13 +49,13 @@ class DBWNode(object):
         # TODO: Subscribe to all the topics you need to
         self.current_velocity = 0
         self.current_angular_velocity = 0
-        self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
+        #self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
         self.linear_velocity = 0
         self.angular_velocity = 0
         self.steer_direction = 0
-        self.twist_cmd_sub = rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_function)
+        #self.twist_cmd_sub = rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_function)
         self.dbw_enabled_bool = False
-        self.dbw_enabled_sub = rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_function)
+        #self.dbw_enabled_sub = rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_function)
 
         # obtain min_speed for the yaw controller by adding the deceleration times time to the current velocity
         self.min_speed = 0 #max(0, decel_limit*time + self.current_velocity(needs to be finished))
@@ -96,8 +96,11 @@ class DBWNode(object):
         # pass
 
     def loop(self):
-        rate = rospy.Rate(1) # 50Hz
+        rate = rospy.Rate(5) # 50Hz
         while not rospy.is_shutdown():
+            self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
+            self.twist_cmd_sub = rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_function)
+            self.dbw_enabled_sub = rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_function)
             # TODO: Get predicted throttle, brake, and steering using `twist_controller`
             # You should only publish the control commands if dbw is enabled
             throttle, brake, steer = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, self.current_velocity, self.current_angular_velocity, self.steer_direction)
