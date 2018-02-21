@@ -120,6 +120,10 @@ class WaypointUpdater(object):
         cy_position = msg.pose.orientation.y
         cz_position = msg.pose.orientation.z
         cw_position = msg.pose.orientation.w
+        rospy.loginfo("Current Position X: "+str(cx_position))
+        rospy.loginfo("Current Position Y: "+str(cy_position))
+        rospy.loginfo("Current Position Z: "+str(cz_position))
+        rospy.loginfo("Current Position W: "+str(cw_position))
         # Find the waypoints in the base waypoints that are after the current position and less than 70 m away
         # the points will need to be transformed into the vehicle's coordinate space
         self.oncoming_waypoints = Lane()
