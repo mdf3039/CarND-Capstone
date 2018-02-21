@@ -140,13 +140,21 @@ class WaypointUpdater(object):
             each_waypointx = each_waypoint.pose.pose.orientation.x
             each_waypointy = each_waypoint.pose.pose.orientation.y
             each_waypointz = each_waypoint.pose.pose.orientation.z
+            rospy.loginfo("WAYPOINT Position X: "+str(cx_position))
+            rospy.loginfo("WAYPOINT Position Y: "+str(cy_position))
+            rospy.loginfo("WAYPOINT Position Z: "+str(cz_position))
             # transform the waypoint
             shift_x = each_waypointx - cx_position
             shift_y = each_waypointy - cy_position
+            rospy.loginfo("WAYPOINT Position Shift X: "+str(shift_x))
+            rospy.loginfo("WAYPOINT Position Shift Y: "+str(shift_y))
             each_waypointx = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position)
             each_waypointy = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
+            rospy.loginfo("New WAYPOINT Position X: "+str(each_waypointx))
+            rospy.loginfo("New WAYPOINT Position Y: "+str(each_waypointy))
             # obtain the distance
             waypoint_distance = ((cx_position-each_waypointx)**2 + (cx_position-each_waypointx)**2 + (cx_position-each_waypointx)**2 * 1.0)**(0.5)
+            rospy.loginfo("New WAYPOINT Distance: "+str(waypoint_distance))
             #if the waypoint is in proximity of the vehicle and in front of the vehicle
             if (waypoint_distance<DISTANCE_AHEAD and each_waypointx>0):
                 # add to the oncoming waypoints
