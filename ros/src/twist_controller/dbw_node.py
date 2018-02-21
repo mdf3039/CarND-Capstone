@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, Float64
 from dbw_mkz_msgs.msg import ThrottleCmd, SteeringCmd, BrakeCmd, SteeringReport
 from geometry_msgs.msg import TwistStamped
 import math
@@ -53,9 +53,10 @@ class DBWNode(object):
         self.linear_velocity = 0
         self.angular_velocity = 0
         self.steer_direction = 0
-        #self.twist_cmd_sub = rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_function)
+        self.cte_sub = rospy.Subscriber('cross_track_error',Float64, cte_function)
+        self.twist_cmd_sub = rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_function)
         self.dbw_enabled_bool = False
-        #self.dbw_enabled_sub = rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_function)
+        self.dbw_enabled_sub = rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_function)
 
         # obtain min_speed for the yaw controller by adding the deceleration times time to the current velocity
         self.min_speed = 0 #max(0, decel_limit*time + self.current_velocity(needs to be finished))
@@ -71,7 +72,12 @@ class DBWNode(object):
         self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
                                          BrakeCmd, queue_size=1)
 
-        self.loop()
+        # self.loop()
+        rospy.spin()
+
+    def cte_function(self,msg):
+        self.cte =  msg.data
+        pass
     
     def dbw_enabled_function(self,msg):
         self.dbw_enabled_bool =  msg.data
@@ -86,7 +92,13 @@ class DBWNode(object):
         self.steer_direction = 0
         if msg.twist.angular.z<0:
             self.steer_direction = 1
-        self.twist_cmd = msg
+        #publish in the twist function
+        throttle, brake, steer = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
+                                                                                self.current_velocity, self.current_angular_velocity, 
+                                                                                self.steer_direction, self.cte, self.sample_cte)
+        if self.dbw_enabled_bool:
+            self.publish(throttle, brake, steer)
+        #self.twist_cmd = msg
 
     def current_velocity_function(self,msg):
         # obtain current_velocity for yaw controller
@@ -103,7 +115,9 @@ class DBWNode(object):
             self.dbw_enabled_sub = rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_function)
             # TODO: Get predicted throttle, brake, and steering using `twist_controller`
             # You should only publish the control commands if dbw is enabled
-            throttle, brake, steer = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, self.current_velocity, self.current_angular_velocity, self.steer_direction)
+            throttle, brake, steer = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
+                                                                                    self.current_velocity, self.current_angular_velocity, 
+                                                                                    self.steer_direction, self.cte, self.sample_time)
             if self.dbw_enabled_bool:
                 self.publish(throttle, brake, steer)
             rate.sleep()

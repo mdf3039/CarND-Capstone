@@ -3,7 +3,7 @@
 import rospy
 from geometry_msgs.msg import PoseStamped, TwistStamped
 from styx_msgs.msg import Lane, Waypoint
-from std_msgs.msg import Int32
+from std_msgs.msg import Int32, Float64
 
 import math
 import numpy as np
@@ -48,6 +48,7 @@ class WaypointUpdater(object):
         self.oncoming_waypoints = None
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
+        self.cte_pub = rospy.Publisher('cross_track_error',Float64, queue_size=1)
 
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
         self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
@@ -129,6 +130,7 @@ class WaypointUpdater(object):
         self.oncoming_waypoints = Lane()
         self.oncoming_waypoints_distance = []
         self.transformed_xy = []
+        self.two_closest_waypoints = np.empty((0,3), float)
         #print ("The BASE WAYPOINTS ARE OF TYPE: ", type(self.base_waypoints))
         if self.base_waypoints is None:
             rospy.loginfo("THE BASE WAYPOINTS ARE NOT THERE")
@@ -162,10 +164,17 @@ class WaypointUpdater(object):
                 # add to the distance list holder
                 self.oncoming_waypoints_distance.append(waypoint_distance)
                 #add the transformed x and y to a list to store the transformed x and y. Use to make polynomial fitting later 
-                self.transformed_xy.append([each_waypointx,each_waypointy])
+                #self.transformed_xy.append([each_waypointx,each_waypointy])
+            #for the cross track error, keep the two waypoints that are closest to the current position
+            #record the distance, x, and y for the waypoints
+            self.two_closest_waypoints = np.append(self.two_closest_waypoints, np.array([[waypoint_distance,each_waypointx,each_waypointy]]), axis=0)
+            self.two_closest_waypoints = self.two_closest_waypoints[self.two_closest_waypoints[:,0].argsort()[:2]]
+        #Find the distance from the line segment of the two closest points and the current position(0,0)
+        self.cross_track_error = self.two_closest_waypoints[0,2] - self.two_closest_waypoints[0,1]*(self.two_closest_waypoints[0,2]-self.two_closest_waypoints[1,2])/(self.two_closest_waypoints[0,1]-self.two_closest_waypoints[1,1])
+        rospy.loginfo("The CTE is: " + str(self.cross_track_error))
         rospy.loginfo("a# of oncoming waypoints are " + str(len(self.oncoming_waypoints.waypoints)))
         #fit the polynomial
-        self.transformed_xy = np.array(self.transformed_xy)
+        #self.transformed_xy = np.array(self.transformed_xy)
         #poly_output = np.poly1d(np.polyfit(self.transformed_xy[:,0].tolist(), self.transformed_xy[:,1].tolist(), 3))
         #untransform the points
         #for 
@@ -179,13 +188,14 @@ class WaypointUpdater(object):
             self.final_waypoints.waypoints.append(self.oncoming_waypoints.waypoints[each_index])
             #Also change the speed to the max_velocity
             self.final_waypoints.waypoints[-1].twist.twist.linear.x = 8#self.maximum_velocity
-            rospy.loginfo("The Linear Velocity of the waypoint: " + str(self.final_waypoints.waypoints[-1].twist.twist.linear.x))
-            rospy.loginfo("The X Position of the waypoint: " + str(self.final_waypoints.waypoints[-1].pose.pose.position.x))
-            rospy.loginfo("The Y Position of the waypoint: " + str(self.final_waypoints.waypoints[-1].pose.pose.position.y))
+            # rospy.loginfo("The Linear Velocity of the waypoint: " + str(self.final_waypoints.waypoints[-1].twist.twist.linear.x))
+            # rospy.loginfo("The X Position of the waypoint: " + str(self.final_waypoints.waypoints[-1].pose.pose.position.x))
+            # rospy.loginfo("The Y Position of the waypoint: " + str(self.final_waypoints.waypoints[-1].pose.pose.position.y))
         #rospy.loginfo(self.final_waypoints)
         # using the final waypoints, separate them out at a speed of maximum_velocity. 
         # fit a polynomial with transformed points
         self.final_waypoints_pub.publish(self.final_waypoints)
+        self.cte_pub.publish(self.cross_track_error)
         self.current_pose = msg
 
     def waypoints_cb(self, waypoints):

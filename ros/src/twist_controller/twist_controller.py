@@ -9,13 +9,16 @@ class Controller(object):
         # TODO: Implement
         self.vehicle_mass = vehicle_mass
         self.wheel_radius = wheel_radius
-        self.yaw_controller = YawController(wheel_base, steer_ratio, min_speed, max_lat_accel, max_steer_angle)
+        kp = 0.85
+        ki = 0.0015
+        kd = 0.05
+        self.yaw_controller = YawController(wheel_base, steer_ratio, min_speed, max_lat_accel, max_steer_angle, kp, ki, kd)
         pass
 
-    def control(self, min_speed, linear_velocity, angular_velocity, current_velocity, current_angular_velocity, steer_direction):
+    def control(self, min_speed, linear_velocity, angular_velocity, current_velocity, current_angular_velocity, steer_direction, cte, sample_time):
         # TODO: Change the arg, kwarg list to suit your needs
         # Return throttle, brake, steer
-        steer_angle = self.yaw_controller.get_steering(linear_velocity, angular_velocity, current_velocity)
+        steer_angle = self.yaw_controller.get_steering(linear_velocity, angular_velocity, current_velocity, cte, sample_time)
         if not steer_direction:
             steer_angle *= -1
         #If the current velocity is zero and the linear velocity is zero, keep the brakes on
