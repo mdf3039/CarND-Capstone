@@ -151,6 +151,7 @@ class WaypointUpdater(object):
                 self.oncoming_waypoints_distance.append(waypoint_distance)
                 #add the transformed x and y to a list to store the transformed x and y. Use to make polynomial fitting later 
                 self.transformed_xy.append([each_waypointx,each_waypointy])
+        rospy.loginfo("a# of oncoming waypoints are " + str(len(self.oncoming_waypoints.waypoints)))
         #fit the polynomial
         self.transformed_xy = np.array(self.transformed_xy)
         #poly_output = np.poly1d(np.polyfit(self.transformed_xy[:,0].tolist(), self.transformed_xy[:,1].tolist(), 3))
@@ -161,7 +162,7 @@ class WaypointUpdater(object):
         # create a final_waypoints
         self.final_waypoints = Lane()
         # add the waypoints to the final_waypoints with respect to the sorted distance. Also change the speed to the max_velocity
-        rospy.loginfo("# of oncoming waypoints are " + str(len(self.oncoming_waypoints_distance_sorted)))
+        rospy.loginfo("b# of oncoming waypoints are " + str(len(self.oncoming_waypoints_distance)))
         for each_index in self.oncoming_waypoints_distance_sorted:
             self.final_waypoints.waypoints.append(self.oncoming_waypoints.waypoints[each_index])
             #Also change the speed to the max_velocity
