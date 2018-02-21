@@ -120,10 +120,10 @@ class WaypointUpdater(object):
         cy_position = msg.pose.position.y
         cz_position = msg.pose.position.z
         cw_position = msg.pose.orientation.w
-        rospy.loginfo("Current Position X: "+str(cx_position))
-        rospy.loginfo("Current Position Y: "+str(cy_position))
-        rospy.loginfo("Current Position Z: "+str(cz_position))
-        rospy.loginfo("Current Position W: "+str(cw_position))
+        # rospy.loginfo("Current Position X: "+str(cx_position))
+        # rospy.loginfo("Current Position Y: "+str(cy_position))
+        # rospy.loginfo("Current Position Z: "+str(cz_position))
+        # rospy.loginfo("Current Position W: "+str(cw_position))
         # Find the waypoints in the base waypoints that are after the current position and less than 70 m away
         # the points will need to be transformed into the vehicle's coordinate space
         self.oncoming_waypoints = Lane()
@@ -140,21 +140,21 @@ class WaypointUpdater(object):
             each_waypointx = each_waypoint.pose.pose.position.x
             each_waypointy = each_waypoint.pose.pose.position.y
             each_waypointz = each_waypoint.pose.pose.position.z
-            rospy.loginfo("WAYPOINT Position X: "+str(cx_position))
-            rospy.loginfo("WAYPOINT Position Y: "+str(cy_position))
-            rospy.loginfo("WAYPOINT Position Z: "+str(cz_position))
+            # rospy.loginfo("WAYPOINT Position X: "+str(cx_position))
+            # rospy.loginfo("WAYPOINT Position Y: "+str(cy_position))
+            # rospy.loginfo("WAYPOINT Position Z: "+str(cz_position))
             # transform the waypoint
             shift_x = each_waypointx - cx_position
             shift_y = each_waypointy - cy_position
-            rospy.loginfo("WAYPOINT Position Shift X: "+str(shift_x))
-            rospy.loginfo("WAYPOINT Position Shift Y: "+str(shift_y))
+            # rospy.loginfo("WAYPOINT Position Shift X: "+str(shift_x))
+            # rospy.loginfo("WAYPOINT Position Shift Y: "+str(shift_y))
             each_waypointx = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position)
             each_waypointy = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
-            rospy.loginfo("New WAYPOINT Position X: "+str(each_waypointx))
-            rospy.loginfo("New WAYPOINT Position Y: "+str(each_waypointy))
+            # rospy.loginfo("New WAYPOINT Position X: "+str(each_waypointx))
+            # rospy.loginfo("New WAYPOINT Position Y: "+str(each_waypointy))
             # obtain the distance
             waypoint_distance = ((cx_position-each_waypointx)**2 + (cx_position-each_waypointx)**2 + (cx_position-each_waypointx)**2 * 1.0)**(0.5)
-            rospy.loginfo("New WAYPOINT Distance: "+str(waypoint_distance))
+            # rospy.loginfo("New WAYPOINT Distance: "+str(waypoint_distance))
             #if the waypoint is in proximity of the vehicle and in front of the vehicle
             if (waypoint_distance<DISTANCE_AHEAD and each_waypointx>0):
                 # add to the oncoming waypoints
@@ -179,9 +179,9 @@ class WaypointUpdater(object):
             self.final_waypoints.waypoints.append(self.oncoming_waypoints.waypoints[each_index])
             #Also change the speed to the max_velocity
             self.final_waypoints.waypoints[-1].twist.twist.linear.x = 8#self.maximum_velocity
-            rospy.loginfo(str(self.final_waypoints.waypoints[-1].twist.twist.linear.x))
-            rospy.loginfo(str(self.final_waypoints.waypoints[-1].pose.pose.position.x))
-            rospy.loginfo(str(self.final_waypoints.waypoints[-1].pose.pose.position.y))
+            rospy.loginfo("The Linear Velocity of the waypoint: " + str(self.final_waypoints.waypoints[-1].twist.twist.linear.x))
+            rospy.loginfo("The X Position of the waypoint: " + str(self.final_waypoints.waypoints[-1].pose.pose.position.x))
+            rospy.loginfo("The Y Position of the waypoint: " + str(self.final_waypoints.waypoints[-1].pose.pose.position.y))
         #rospy.loginfo(self.final_waypoints)
         # using the final waypoints, separate them out at a speed of maximum_velocity. 
         # fit a polynomial with transformed points
