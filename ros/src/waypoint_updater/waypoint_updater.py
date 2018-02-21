@@ -116,9 +116,9 @@ class WaypointUpdater(object):
         # TODO: Implement
         # Using the data from the current position, provide waypoints ahead
         # create variables obtaining the placement of the vehicle
-        cx_position = msg.pose.orientation.x
-        cy_position = msg.pose.orientation.y
-        cz_position = msg.pose.orientation.z
+        cx_position = msg.pose.position.x
+        cy_position = msg.pose.position.y
+        cz_position = msg.pose.position.z
         cw_position = msg.pose.orientation.w
         rospy.loginfo("Current Position X: "+str(cx_position))
         rospy.loginfo("Current Position Y: "+str(cy_position))
@@ -137,9 +137,9 @@ class WaypointUpdater(object):
         rospy.loginfo("THE BASE WAYPOINTS ARE FOUND")
         for each_waypoint in self.base_waypoints:
             #create variables for the placement of the waypoint
-            each_waypointx = each_waypoint.pose.pose.orientation.x
-            each_waypointy = each_waypoint.pose.pose.orientation.y
-            each_waypointz = each_waypoint.pose.pose.orientation.z
+            each_waypointx = each_waypoint.pose.pose.position.x
+            each_waypointy = each_waypoint.pose.pose.position.y
+            each_waypointz = each_waypoint.pose.pose.position.z
             rospy.loginfo("WAYPOINT Position X: "+str(cx_position))
             rospy.loginfo("WAYPOINT Position Y: "+str(cy_position))
             rospy.loginfo("WAYPOINT Position Z: "+str(cz_position))
