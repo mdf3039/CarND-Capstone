@@ -47,6 +47,7 @@ class DBWNode(object):
         max_steer_angle = rospy.get_param('~max_steer_angle', 8.)
         
         # TODO: Subscribe to all the topics you need to
+        self.cte = 0
         self.prev_sample_time = None
         self.current_velocity = 0
         self.current_angular_velocity = 0
