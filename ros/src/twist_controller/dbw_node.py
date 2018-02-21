@@ -47,6 +47,7 @@ class DBWNode(object):
         max_steer_angle = rospy.get_param('~max_steer_angle', 8.)
         
         # TODO: Subscribe to all the topics you need to
+        self.prev_sample_time = None
         self.current_velocity = 0
         self.current_angular_velocity = 0
         #self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
@@ -92,10 +93,18 @@ class DBWNode(object):
         self.steer_direction = 0
         if msg.twist.angular.z<0:
             self.steer_direction = 1
+        if self.prev_sample_time is None:
+            self.sample_time = 0.02
+            self.prev_sample_time = rospy.get_time()
+        else:
+            time = rospy.get_time()
+            self.sample_time = time - self.prev_sample_time
+            self.prev_sample_time = time
+
         #publish in the twist function
         throttle, brake, steer = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
                                                                                 self.current_velocity, self.current_angular_velocity, 
-                                                                                self.steer_direction, self.cte, self.sample_cte)
+                                                                                self.steer_direction, self.cte, self.sample_time)
         if self.dbw_enabled_bool:
             self.publish(throttle, brake, steer)
         #self.twist_cmd = msg
