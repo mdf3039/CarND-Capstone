@@ -54,7 +54,7 @@ class DBWNode(object):
         self.linear_velocity = 0
         self.angular_velocity = 0
         self.steer_direction = 0
-        self.cte_sub = rospy.Subscriber('cross_track_error',Float64, cte_function)
+        self.cte_sub = rospy.Subscriber('cross_track_error',Float64, self.cte_function)
         self.twist_cmd_sub = rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_function)
         self.dbw_enabled_bool = False
         self.dbw_enabled_sub = rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_function)
