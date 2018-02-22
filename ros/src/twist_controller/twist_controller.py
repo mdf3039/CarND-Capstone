@@ -10,8 +10,8 @@ class Controller(object):
         self.max_steer_angle = max_steer_angle
         self.vehicle_mass = vehicle_mass
         self.wheel_radius = wheel_radius
-        kp = 1.85
-        ki = 0.015
+        kp = 3.85
+        ki = 4.015
         kd = 0.05
         self.yaw_controller = YawController(wheel_base, steer_ratio, min_speed, max_lat_accel, max_steer_angle, kp, ki, kd)
         pass
