@@ -104,13 +104,13 @@ class WaypointUpdater(object):
         return (velocity_kmph * 1000.) / (60. * 60.)
 
     def current_velocity_function(self,msg):
-        rospy.loginfo("Current velocity is loading")
+        # rospy.loginfo("Current velocity is loading")
         # obtain current_velocity for yaw controller
         self.current_velocity = (msg.twist.linear.x**2 + msg.twist.linear.y**2 + msg.twist.linear.z**2 * 1.0)**(1.0/2)
-        rospy.loginfo("The current velocity is: " + str(self.current_velocity))
+        # rospy.loginfo("The current velocity is: " + str(self.current_velocity))
         #obtain current_angular_velocity for controller
         self.current_angular_velocity = (msg.twist.angular.x**2 + msg.twist.angular.y**2 + msg.twist.angular.z**2 * 1.0)**(1.0/2)
-        rospy.loginfo("The current angular velocity is: " + str(self.current_angular_velocity))
+        # rospy.loginfo("The current angular velocity is: " + str(self.current_angular_velocity))
         # pass
 
     def pose_cb(self, msg):
@@ -169,11 +169,11 @@ class WaypointUpdater(object):
             #record the distance, x, and y for the waypoints
             self.two_closest_waypoints = np.append(self.two_closest_waypoints, np.array([[waypoint_distance,each_waypointx,each_waypointy]]), axis=0)
             self.two_closest_waypoints = self.two_closest_waypoints[self.two_closest_waypoints[:,0].argsort()[:2]]
-        rospy.loginfo("The values from the two closest waypoints: " + str(self.two_closest_waypoints.tolist()))
+        # rospy.loginfo("The values from the two closest waypoints: " + str(self.two_closest_waypoints.tolist()))
         #Find the distance from the line segment of the two closest points and the current position(0,0)
         self.cross_track_error = self.two_closest_waypoints[0,2] - self.two_closest_waypoints[0,1]*(self.two_closest_waypoints[0,2]-self.two_closest_waypoints[1,2])/(self.two_closest_waypoints[0,1]-self.two_closest_waypoints[1,1])
-        rospy.loginfo("The CTE is: " + str(self.cross_track_error))
-        rospy.loginfo("a# of oncoming waypoints are " + str(len(self.oncoming_waypoints.waypoints)))
+        # rospy.loginfo("The CTE is: " + str(self.cross_track_error))
+        # rospy.loginfo("a# of oncoming waypoints are " + str(len(self.oncoming_waypoints.waypoints)))
         #fit the polynomial
         #self.transformed_xy = np.array(self.transformed_xy)
         #poly_output = np.poly1d(np.polyfit(self.transformed_xy[:,0].tolist(), self.transformed_xy[:,1].tolist(), 3))
@@ -184,7 +184,7 @@ class WaypointUpdater(object):
         # create a final_waypoints
         self.final_waypoints = Lane()
         # add the waypoints to the final_waypoints with respect to the sorted distance. Also change the speed to the max_velocity
-        rospy.loginfo("b# of oncoming waypoints are " + str(len(self.oncoming_waypoints_distance)))
+        # rospy.loginfo("b# of oncoming waypoints are " + str(len(self.oncoming_waypoints_distance)))
         for each_index in self.oncoming_waypoints_distance_sorted:
             self.final_waypoints.waypoints.append(self.oncoming_waypoints.waypoints[each_index])
             #Also change the speed to the max_velocity
@@ -202,9 +202,9 @@ class WaypointUpdater(object):
 
     def waypoints_cb(self, waypoints):
         # TODO: Implement
-        rospy.loginfo("Oncoming Waypoints are loading")
+        # rospy.loginfo("Oncoming Waypoints are loading")
         self.base_waypoints = waypoints.waypoints
-        rospy.loginfo("The number of oncoming waypoints are: " + str(len(waypoints.waypoints)))
+        # rospy.loginfo("The number of oncoming waypoints are: " + str(len(waypoints.waypoints)))
 
     def traffic_cb(self, msg):
         msg = int(str(msg))
