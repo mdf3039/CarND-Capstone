@@ -47,8 +47,8 @@ class WaypointUpdater(object):
         self.transformed_xy = []
         self.oncoming_waypoints = None
 
-        self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
-        self.cte_pub = rospy.Publisher('cross_track_error',Float64, queue_size=1)
+        self.final_waypoints_pub = rospy.Publisher('/final_waypoints', Lane, queue_size=1)
+        self.cte_pub = rospy.Publisher('/cross_track_error',Float64, queue_size=1)
 
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
         self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
@@ -155,7 +155,7 @@ class WaypointUpdater(object):
             # rospy.loginfo("New WAYPOINT Position X: "+str(each_waypointx))
             # rospy.loginfo("New WAYPOINT Position Y: "+str(each_waypointy))
             # obtain the distance
-            waypoint_distance = ((cx_position-each_waypointx)**2 + (cx_position-each_waypointx)**2 + (cx_position-each_waypointx)**2 * 1.0)**(0.5)
+            waypoint_distance = (each_waypointx**2 + each_waypointy**2 * 1.0)**(0.5)
             # rospy.loginfo("New WAYPOINT Distance: "+str(waypoint_distance))
             #if the waypoint is in proximity of the vehicle and in front of the vehicle
             if (waypoint_distance<DISTANCE_AHEAD and each_waypointx>0):
@@ -169,6 +169,7 @@ class WaypointUpdater(object):
             #record the distance, x, and y for the waypoints
             self.two_closest_waypoints = np.append(self.two_closest_waypoints, np.array([[waypoint_distance,each_waypointx,each_waypointy]]), axis=0)
             self.two_closest_waypoints = self.two_closest_waypoints[self.two_closest_waypoints[:,0].argsort()[:2]]
+        rospy.loginfo("The values from the two closest waypoints: " + str(self.two_closest_waypoints.tolist()))
         #Find the distance from the line segment of the two closest points and the current position(0,0)
         self.cross_track_error = self.two_closest_waypoints[0,2] - self.two_closest_waypoints[0,1]*(self.two_closest_waypoints[0,2]-self.two_closest_waypoints[1,2])/(self.two_closest_waypoints[0,1]-self.two_closest_waypoints[1,1])
         rospy.loginfo("The CTE is: " + str(self.cross_track_error))
