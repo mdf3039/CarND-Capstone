@@ -20,8 +20,8 @@ class Controller(object):
         # TODO: Change the arg, kwarg list to suit your needs
         # Return throttle, brake, steer
         steer_angle = self.max_steer_angle # self.yaw_controller.get_steering(linear_velocity, angular_velocity, current_velocity, cte, sample_time)
-        if not steer_direction:
-            steer_angle *= -1
+        # if not steer_direction:
+        #     steer_angle *= -1
         #If the current velocity is zero and the linear velocity is zero, keep the brakes on
 
         #If the desired velocity is larger than the current_velocity
