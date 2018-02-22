@@ -78,6 +78,7 @@ class DBWNode(object):
         rospy.spin()
 
     def cte_function(self,msg):
+        
         self.cte =  msg.data
         pass
     
@@ -101,7 +102,8 @@ class DBWNode(object):
             time = rospy.get_time()
             self.sample_time = time - self.prev_sample_time
             self.prev_sample_time = time
-
+        rospy.loginfo("The CTE from wpt_updtr: " + str(self.cte))
+        rospy.loginfo("The sample time: " + str(self.sample_time))
         #publish in the twist function
         throttle, brake, steer = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
                                                                                 self.current_velocity, self.current_angular_velocity, 

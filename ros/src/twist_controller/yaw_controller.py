@@ -14,7 +14,12 @@ class YawController(object):
 
 
     def get_angle(self, radius, cte, sample_time):
-        angle = atan(self.wheel_base / radius + self.pid_controller.step(cte, sample_time)) * self.steer_ratio
+        pid_step = self.pid_controller.step(cte, sample_time)
+        angle = atan(self.wheel_base / (radius + pid_step)) * self.steer_ratio
+        rospy.loginfo("The radius gives value of: " + str(radius))
+        rospy.loginfo("The PID controller gives value of: " + str(pid_step))
+        rospy.loginfo("The radius + PID controller gives value of: " + str(radius + pid_step))
+        rospy.loginfo("The output angle is: " + str(angle))
         return max(self.min_angle, min(self.max_angle, angle))
 
     def get_steering(self, linear_velocity, angular_velocity, current_velocity, cte, sample_time):

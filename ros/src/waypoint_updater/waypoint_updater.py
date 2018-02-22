@@ -195,6 +195,7 @@ class WaypointUpdater(object):
         # using the final waypoints, separate them out at a speed of maximum_velocity. 
         # fit a polynomial with transformed points
         self.final_waypoints_pub.publish(self.final_waypoints)
+        rospy.loginfo("The CTE in wpt_updtr: " + str(self.cross_track_error))
         self.cte_pub.publish(self.cross_track_error)
         self.current_pose = msg
 
