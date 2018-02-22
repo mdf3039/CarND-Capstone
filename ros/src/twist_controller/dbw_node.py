@@ -48,6 +48,7 @@ class DBWNode(object):
         
         # TODO: Subscribe to all the topics you need to
         self.cte = 0
+        self.cte_bool = False
         self.prev_sample_time = None
         self.current_velocity = 0
         self.current_angular_velocity = 0
@@ -78,6 +79,7 @@ class DBWNode(object):
         rospy.spin()
 
     def cte_function(self,msg):
+        self.cte_bool = True
         self.cte =  msg.data
         rospy.loginfo("The CTE function has been activated: " + str(self.cte))
         pass
@@ -87,6 +89,8 @@ class DBWNode(object):
         self.dbw_enabled = msg
     
     def twist_cmd_function(self,msg):
+        if not self.cte_bool:
+            return
         # obtain linear velocity for yaw controller
         self.linear_velocity = (msg.twist.linear.x**2 + msg.twist.linear.y**2 + msg.twist.linear.z**2 * 1.0)**(1.0/2)
         # obtain angular velocity for yaw controller
