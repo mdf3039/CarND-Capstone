@@ -7,6 +7,7 @@ from geometry_msgs.msg import TwistStamped
 import math
 
 from twist_controller import Controller
+from pid import PID
 
 '''
 You can build this node only after you have built (or partially built) the `waypoint_updater` node.
@@ -56,6 +57,10 @@ class DBWNode(object):
         self.linear_velocity = 0
         self.angular_velocity = 0
         self.steer_direction = 0
+        kp = 3.85
+        ki = 4.015
+        kd = 0.05
+        self.pid_controller = PID(kp, ki, kd)
         self.cte_sub = rospy.Subscriber('/cross_track_error',Float64, self.cte_function)
         self.twist_cmd_sub = rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_function)
         self.dbw_enabled_bool = False
@@ -89,7 +94,7 @@ class DBWNode(object):
         self.dbw_enabled = msg
     
     def twist_cmd_function(self,msg):
-        if not self.cte_bool:
+        if self.cte==0:
             return
         # obtain linear velocity for yaw controller
         self.linear_velocity = (msg.twist.linear.x**2 + msg.twist.linear.y**2 + msg.twist.linear.z**2 * 1.0)**(1.0/2)
@@ -112,8 +117,12 @@ class DBWNode(object):
         throttle, brake, steer = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
                                                                                 self.current_velocity, self.current_angular_velocity, 
                                                                                 self.steer_direction, self.cte, self.sample_time)
+        pid_step = self.pid_controller.step(cte, sample_time)
+        rospy.loginfo("The PID controller gives value of: " + str(pid_step))
+        rospy.loginfo("The steering angle: " + str(steer))
+        rospy.loginfo("The radius + PID controller gives value of: " + str(steer + pid_step))
         if self.dbw_enabled_bool:
-            self.publish(throttle, brake, steer)
+            self.publish(throttle, brake, steer+pid_step)
         #self.twist_cmd = msg
 
     def current_velocity_function(self,msg):
