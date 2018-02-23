@@ -117,7 +117,7 @@ class DBWNode(object):
         throttle, brake, steer = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
                                                                                 self.current_velocity, self.current_angular_velocity, 
                                                                                 self.steer_direction, self.cte, self.sample_time)
-        pid_step = self.pid_controller.step(cte, sample_time)
+        pid_step = self.pid_controller.step(self.cte, self.sample_time)
         rospy.loginfo("The PID controller gives value of: " + str(pid_step))
         rospy.loginfo("The steering angle: " + str(steer))
         rospy.loginfo("The radius + PID controller gives value of: " + str(steer + pid_step))
