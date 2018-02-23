@@ -100,6 +100,10 @@ class DBWNode(object):
         self.linear_velocity = (msg.twist.linear.x**2 + msg.twist.linear.y**2 + msg.twist.linear.z**2 * 1.0)**(1.0/2)
         # obtain angular velocity for yaw controller
         self.angular_velocity = (msg.twist.angular.x**2 + msg.twist.angular.y**2 + msg.twist.angular.z**2 * 1.0)**(1.0/2)
+        rospy.loginfo("Wanted linear velocity: " + str(self.linear_velocity))
+        rospy.loginfo("Wanted angular velocity: " + str(self.linear_velocity))
+        rospy.loginfo("Current linear velocity: " + str(self.current_velocity))
+        rospy.loginfo("Current angular velocity: " + str(self.current_angular_velocity))
         #decide whether the angle is positive or negative
         self.steer_direction = 0
         if msg.twist.angular.z<0:
