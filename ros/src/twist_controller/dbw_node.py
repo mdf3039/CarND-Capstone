@@ -58,7 +58,7 @@ class DBWNode(object):
         self.angular_velocity = 0
         self.steer_direction = 0
         kp = 1.85
-        ki = 1.015
+        ki = .015
         kd = 0.05
         self.pid_controller = PID(kp, ki, kd)
         self.cte_sub = rospy.Subscriber('/cross_track_error',Float64, self.cte_function)
@@ -120,7 +120,7 @@ class DBWNode(object):
         pid_step = self.pid_controller.step(self.cte, self.sample_time)
         rospy.loginfo("The PID controller gives value of: " + str(pid_step))
         rospy.loginfo("The steering angle: " + str(steer))
-        rospy.loginfo("The radius + PID controller gives value of: " + str(steer + pid_step))
+        rospy.loginfo("The radius + PID controller gives value of: " + str(steer - pid_step))
         if self.dbw_enabled_bool:
             self.publish(throttle, brake, steer+pid_step)
         #self.twist_cmd = msg
