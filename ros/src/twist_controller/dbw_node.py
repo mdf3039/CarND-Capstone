@@ -57,7 +57,7 @@ class DBWNode(object):
         self.linear_velocity = 0
         self.angular_velocity = 0
         self.steer_direction = 0
-        kp = .85
+        kp = 7.85
         ki = 0 # 1.015
         kd = 0 # 0.5
         self.pid_controller = PID(kp, ki, kd)
