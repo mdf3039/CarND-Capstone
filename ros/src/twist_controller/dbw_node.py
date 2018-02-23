@@ -58,8 +58,8 @@ class DBWNode(object):
         self.angular_velocity = 0
         self.steer_direction = 0
         kp = 1.85
-        ki = 1.015
-        kd = 0.5
+        ki = 0 # 1.015
+        kd = 0 # 0.5
         self.pid_controller = PID(kp, ki, kd)
         self.cte_sub = rospy.Subscriber('/cross_track_error',Float64, self.cte_function)
         self.twist_cmd_sub = rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_function)
