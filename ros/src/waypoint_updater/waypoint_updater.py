@@ -104,13 +104,13 @@ class WaypointUpdater(object):
         return (velocity_kmph * 1000.) / (60. * 60.)
 
     def current_velocity_function(self,msg):
-        # rospy.loginfo("Current velocity is loading")
+        rospy.loginfo("Current velocity is loading")
         # obtain current_velocity for yaw controller
         self.current_velocity = (msg.twist.linear.x**2 + msg.twist.linear.y**2 + msg.twist.linear.z**2 * 1.0)**(1.0/2)
-        # rospy.loginfo("The current velocity is: " + str(self.current_velocity))
+        rospy.loginfo("The current velocity is: " + str(self.current_velocity))
         #obtain current_angular_velocity for controller
         self.current_angular_velocity = (msg.twist.angular.x**2 + msg.twist.angular.y**2 + msg.twist.angular.z**2 * 1.0)**(1.0/2)
-        # rospy.loginfo("The current angular velocity is: " + str(self.current_angular_velocity))
+        rospy.loginfo("The current angular velocity is: " + str(self.current_angular_velocity))
         # pass
 
     def pose_cb(self, msg):
