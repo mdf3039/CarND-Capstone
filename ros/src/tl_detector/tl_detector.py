@@ -22,6 +22,12 @@ class TLDetector(object):
         #Get the maximum velocity parameter
         self.maximum_velocity = self.kmph2mps(rospy.get_param('~velocity')) # change km/h to m/s
 
+        config_string = rospy.get_param("/traffic_light_config")
+        self.config = yaml.load(config_string)
+        rospy.loginfo("The config type: " + str(type(self.config)))
+        rospy.loginfo("The config sub type: " + str(type(self.config[0])))
+        rospy.loginfo("The config sub sub type: " + str(type(self.config[0][0])))
+
         self.pose = None
         self.waypoints = None
         self.camera_image = None
@@ -44,8 +50,7 @@ class TLDetector(object):
         '''
         sub6_sub = rospy.Subscriber('/image_color', Image, self.image_cb)
 
-        config_string = rospy.get_param("/traffic_light_config")
-        self.config = yaml.load(config_string)
+
 
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
 
@@ -103,6 +108,13 @@ class TLDetector(object):
         pass
 
     def pose_cb(self, msg):
+        #given the current position, find the closest traffic light stop line
+        #Transform all traffic light coordinates into the current_position coordinate space
+        # create variables obtaining the placement of the vehicle
+        cx_position = msg.pose.position.x
+        cy_position = msg.pose.position.y
+        cz_position = msg.pose.position.z
+        cw_position = msg.pose.orientation.w
         self.current_pose = msg
         # #Each time the position is changed, determine which traffic light is closest
         # #and which waypoint is closest to that traffic light
