@@ -25,8 +25,8 @@ class TLDetector(object):
         config_string = rospy.get_param("/traffic_light_config")
         self.config = yaml.load(config_string)
         rospy.loginfo("The config type: " + str(type(self.config)))
-        # rospy.loginfo("The config sub type: " + str(type(self.config[0])))
-        # rospy.loginfo("The config sub sub type: " + str(type(self.config[0][0])))
+        rospy.loginfo("The config sub type: " + str(type(self.config.keys)))
+        rospy.loginfo("The config sub sub type: " + str(self.config))
 
         self.pose = None
         self.waypoints = None
