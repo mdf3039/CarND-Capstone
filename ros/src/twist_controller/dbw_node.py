@@ -2,6 +2,7 @@
 
 import rospy
 from std_msgs.msg import Bool, Float64
+from styx_msgs.msg import Lane
 from dbw_mkz_msgs.msg import ThrottleCmd, SteeringCmd, BrakeCmd, SteeringReport
 from geometry_msgs.msg import TwistStamped, PoseStamped
 import math
