@@ -35,6 +35,9 @@ class TLDetector(object):
         self.base_waypoints = None
         self.lights = []
 
+        self.stopping_waypoint_index = -1
+        self.stopping_waypoint_distance = 1000
+
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
         self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         self.vehicle_traffic_lights_sub = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
@@ -135,8 +138,6 @@ class TLDetector(object):
         #find the index of the largest distanced waypoint (which is the one closest to the nearest light)
         self.stopping_waypoint_index = np.argmax(waypoint_distances)
         self.stopping_waypoint_distance = np.amax(waypoint_distances)
-        # implement the process traffic lights function
-        process_traffic_lights()
         
 
     def waypoints_cb(self, msg):
@@ -173,6 +174,8 @@ class TLDetector(object):
         elif self.state_count >= STATE_COUNT_THRESHOLD:
             self.last_state = self.state
         self.state_count += 1
+        # implement the process traffic lights function
+        self.process_traffic_lights()
 
     def process_traffic_lights(self):
         """Finds closest visible traffic light, if one exists, and determines its
