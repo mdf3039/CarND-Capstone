@@ -117,7 +117,7 @@ class TLDetector(object):
         if self.base_waypoints is None:
             rospy.loginfo("THE BASE WAYPOINTS ARE NOT THERE")
             self.stopping_waypoint_index = 0
-            self.stopping_waypoint_distance = np.amax(waypoint_distances)
+            self.stopping_waypoint_distance = 10000
             return
         #Transform all waypoint coordinates into the current position coordinate space
         for each_waypoint in self.base_waypoints.waypoints:
