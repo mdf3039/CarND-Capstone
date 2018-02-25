@@ -66,6 +66,7 @@ class DBWNode(object):
         self.twist_cmd_sub = rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_function)
         self.dbw_enabled_bool = False
         self.dbw_enabled_sub = rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_function)
+        self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
 
         # obtain min_speed for the yaw controller by adding the deceleration times time to the current velocity
         self.min_speed = 0 #max(0, decel_limit*time + self.current_velocity(needs to be finished))
@@ -83,6 +84,9 @@ class DBWNode(object):
 
         # self.loop()
         rospy.spin()
+
+    def pose_cb(self, msg):
+        rospy.loginfo("Position is updated")
 
     def cte_function(self,msg):
         self.cte_bool = True
