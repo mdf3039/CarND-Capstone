@@ -94,7 +94,7 @@ class TLDetector(object):
         cz_position = msg.pose.position.z
         cw_position = msg.pose.orientation.w
         self.current_pose = msg
-        for each_stop_line in self.config['stop_line_positions'][0]:
+        for each_stop_line in self.config['stop_line_positions']:
             #create variables for the placement of the traffic_light
             each_stop_linex = each_stop_line[0]
             each_stop_liney = each_stop_line[1]
