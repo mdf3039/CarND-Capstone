@@ -60,9 +60,9 @@ class DBWNode(object):
         self.angular_velocity = 0
         self.steer_direction = 0
         self.base_waypoints = None
-        kp = 7.85
-        ki = 0 # 1.015
-        kd = 0 # 0.5
+        kp = 1.0
+        ki = 0.08 # 1.015
+        kd = 0.35 # 0.5
         self.pid_controller = PID(kp, ki, kd)
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
         self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
@@ -116,17 +116,11 @@ class DBWNode(object):
             rospy.loginfo("two_closest points shape: " + str(two_closest_points.shape))
             rospy.loginfo("msg shape: " + str(msg.shape))
             self.cte = np.linalg.norm(np.cross(two_closest_points[0]-two_closest_points[1], two_closest_points[1]-msg))/np.linalg.norm(two_closest_points[0]-two_closest_points[1])
-            rospy.loginfo("msg[0]: " + str(msg[0]) + "; and type: " + str(type(msg[0])))
-            rospy.loginfo("msg[1]: " + str(msg[1]) + "; and type: " + str(type(msg[1])))
-            rospy.loginfo("two_closest_points[0][0]: " + str(two_closest_points[0][0]) + "; and type: " + str(type(two_closest_points[0][0])))
-            rospy.loginfo("two_closest_points[0][1]: " + str(two_closest_points[0][1]) + "; and type: " + str(type(two_closest_points[0][1])))
-            rospy.loginfo("two_closest_points[1][0]: " + str(two_closest_points[1][0]) + "; and type: " + str(type(two_closest_points[1][0])))
-            rospy.loginfo("two_closest_points[1][1]: " + str(two_closest_points[1][1]) + "; and type: " + str(type(two_closest_points[1][1])))
             if ((msg[0]-two_closest_points[0][0])*(two_closest_points[1][1]-two_closest_points[0][1])-(msg[1]-two_closest_points[0][1])*(two_closest_points[1][0]-two_closest_points[0][0])) > 0:
                 self.cte *= -1
             pid_step = self.pid_controller.step(self.cte, self.sample_time)
             if self.dbw_enabled_bool:
-                self.publish(throttle=.1, brake=0, steer=pid_step)
+                self.publish(throttle=.1, brake=0, steer=pid_step*8)
 
 
     def cte_function(self,msg):
