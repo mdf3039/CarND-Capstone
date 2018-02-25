@@ -57,13 +57,15 @@ class DBWNode(object):
         self.linear_velocity = 0
         self.angular_velocity = 0
         self.steer_direction = 0
+        self.base_waypoints = None
         kp = 7.85
         ki = 0 # 1.015
         kd = 0 # 0.5
         self.pid_controller = PID(kp, ki, kd)
+        self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
         self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
         self.cte_sub = rospy.Subscriber('/cross_track_error',Float64, self.cte_function)
-        self.twist_cmd_sub = rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_function)
+        #self.twist_cmd_sub = rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_function)
         self.dbw_enabled_bool = False
         self.dbw_enabled_sub = rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_function)
         self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
@@ -84,9 +86,36 @@ class DBWNode(object):
 
         # self.loop()
         rospy.spin()
+    
+    def waypoints_cb(self, waypoints):
+        # TODO: Implement
+        rospy.loginfo("Oncoming Waypoints are loading")
+        self.base_waypoints = []
+        for waypoint in waypoints.waypoints:
+            # add to the waypoints list
+            self.base_waypoints.append([waypoint.pose.pose.position.x, waypoint.pose.pose.position.y])
+        self.base_waypoints = np.array(self.base_waypoints)
+        rospy.loginfo("The number of oncoming waypoints are: " + str(self.base_waypoints.shape))
 
     def pose_cb(self, msg):
         rospy.loginfo("Position is updated")
+        #Find the closest two waypoints given the position.
+        self.steer = 0
+        if self.prev_sample_time is None:
+            self.sample_time = 0.02
+            self.prev_sample_time = rospy.get_time()
+        else:
+            time = rospy.get_time()
+            self.sample_time = time - self.prev_sample_time
+            self.prev_sample_time = time
+        if self.base_waypoints is not None:
+            msg = (msg.pose.position.x, msg.pose.position.y)
+            two_closest_points = self.base_waypoints[((self.base_waypoints-msg)**2).sum(axis=1).argsort()[:2]]
+            self.cte = norm(np.cross(two_closest_points[0]-two_closest_points[1], two_closest_points[1]-msg))/norm(two_closest_points[0]-two_closest_points[1])
+            pid_step = self.pid_controller.step(self.cte, self.sample_time)
+            if self.dbw_enabled_bool:
+                self.publish(throttle=.1, brake=0, steer=pid_step)
+
 
     def cte_function(self,msg):
         self.cte_bool = True
@@ -132,7 +161,6 @@ class DBWNode(object):
         rospy.loginfo("The radius + PID controller gives value of: " + str(steer - pid_step))
         if self.dbw_enabled_bool:
             self.publish(throttle, brake, steer+pid_step)
-        #self.twist_cmd = msg
 
     def current_velocity_function(self,msg):
         rospy.loginfo("Current velocity is loading")
