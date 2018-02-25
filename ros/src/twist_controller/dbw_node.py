@@ -122,7 +122,7 @@ class DBWNode(object):
             rospy.loginfo("two_closest_points[0][1]: " + str(two_closest_points[0][1]) + "; and type: " + str(type(two_closest_points[0][1])))
             rospy.loginfo("two_closest_points[1][0]: " + str(two_closest_points[1][0]) + "; and type: " + str(type(two_closest_points[1][0])))
             rospy.loginfo("two_closest_points[1][1]: " + str(two_closest_points[1][1]) + "; and type: " + str(type(two_closest_points[1][1])))
-            if ((msg[0]-two_closest_points[0][0])(two_closest_points[1][1]-two_closest_points[0][1])-(msg[1]-two_closest_points[0][1])(two_closest_points[1][0]-two_closest_points[0][0])) > 0:
+            if ((msg[0]-two_closest_points[0][0])*(two_closest_points[1][1]-two_closest_points[0][1])-(msg[1]-two_closest_points[0][1])*(two_closest_points[1][0]-two_closest_points[0][0])) > 0:
                 self.cte *= -1
             pid_step = self.pid_controller.step(self.cte, self.sample_time)
             if self.dbw_enabled_bool:
