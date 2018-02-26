@@ -61,12 +61,12 @@ class DBWNode(object):
         self.steer_direction = 0
         self.base_waypoints = None
         kp = 1.0
-        ki = 0.08 # 1.015
-        kd = 0.35 # 0.5
+        ki = 0.0#.08 # 1.015
+        kd = 0.0#.35 # 0.5
         self.pid_controller = PID(kp, ki, kd)
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
         self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
-        self.cte_sub = rospy.Subscriber('/cross_track_error',Float64, self.cte_function)
+        # self.cte_sub = rospy.Subscriber('/cross_track_error',Float64, self.cte_function)
         #self.twist_cmd_sub = rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_function)
         self.dbw_enabled_bool = False
         self.dbw_enabled_sub = rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_function)
@@ -113,12 +113,13 @@ class DBWNode(object):
         if self.base_waypoints is not None:
             msg = np.array([msg.pose.position.x, msg.pose.position.y])
             two_closest_points = self.base_waypoints[np.sort(((self.base_waypoints-msg)**2).sum(axis=1).argsort()[:2])]
-            rospy.loginfo("two_closest points shape: " + str(two_closest_points.shape))
-            rospy.loginfo("msg shape: " + str(msg.shape))
             self.cte = np.linalg.norm(np.cross(two_closest_points[0]-two_closest_points[1], two_closest_points[1]-msg))/np.linalg.norm(two_closest_points[0]-two_closest_points[1])
             if ((msg[0]-two_closest_points[0][0])*(two_closest_points[1][1]-two_closest_points[0][1])-(msg[1]-two_closest_points[0][1])*(two_closest_points[1][0]-two_closest_points[0][0])) > 0:
                 self.cte *= -1
+            rospy.loginfo("The CTE: " + str(self.cte))
             pid_step = self.pid_controller.step(self.cte, self.sample_time)
+            rospy.loginfo("The PID: " + str(self.pid_step))
+            rospy.loginfo("The STR: " + str(self.pid_step))
             if self.dbw_enabled_bool:
                 self.publish(throttle=.1, brake=0, steer=pid_step*8)
 
@@ -169,13 +170,13 @@ class DBWNode(object):
             self.publish(throttle, brake, steer+pid_step)
 
     def current_velocity_function(self,msg):
-        rospy.loginfo("Current velocity is loading")
+        # rospy.loginfo("Current velocity is loading")
         # obtain current_velocity for yaw controller
         self.current_velocity = (msg.twist.linear.x**2 + msg.twist.linear.y**2 + msg.twist.linear.z**2 * 1.0)**(1.0/2)
-        rospy.loginfo("The current velocity is: " + str(self.current_velocity))
+        # rospy.loginfo("The current velocity is: " + str(self.current_velocity))
         #obtain current_angular_velocity for controller
         self.current_angular_velocity = (msg.twist.angular.x**2 + msg.twist.angular.y**2 + msg.twist.angular.z**2 * 1.0)**(1.0/2)
-        rospy.loginfo("The current angular velocity is: " + str(self.current_angular_velocity))
+        # rospy.loginfo("The current angular velocity is: " + str(self.current_angular_velocity))
         # pass
 
     def loop(self):
