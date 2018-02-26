@@ -118,8 +118,8 @@ class DBWNode(object):
                 self.cte *= -1
             rospy.loginfo("The CTE: " + str(self.cte))
             pid_step = self.pid_controller.step(self.cte, self.sample_time)
-            rospy.loginfo("The PID: " + str(self.pid_step))
-            rospy.loginfo("The STR: " + str(self.pid_step))
+            rospy.loginfo("The PID: " + str(pid_step))
+            rospy.loginfo("The STR: " + str(pid_step*8))
             if self.dbw_enabled_bool:
                 self.publish(throttle=.1, brake=0, steer=pid_step*8)
 
