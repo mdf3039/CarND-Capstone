@@ -114,7 +114,7 @@ class DBWNode(object):
             msg = np.array([msg.pose.position.x, msg.pose.position.y])
             two_closest_points = self.base_waypoints[np.sort(((self.base_waypoints-msg)**2).sum(axis=1).argsort()[:2])]
             self.cte = np.linalg.norm(np.cross(two_closest_points[0]-two_closest_points[1], two_closest_points[1]-msg))/np.linalg.norm(two_closest_points[0]-two_closest_points[1])
-            if ((msg[0]-two_closest_points[0][0])*(two_closest_points[1][1]-two_closest_points[0][1])-(msg[1]-two_closest_points[0][1])*(two_closest_points[1][0]-two_closest_points[0][0])) > 0:
+            if ((msg[0]-two_closest_points[0][0])*(two_closest_points[1][1]-two_closest_points[0][1])-(msg[1]-two_closest_points[0][1])*(two_closest_points[1][0]-two_closest_points[0][0])) < 0:
                 self.cte *= -1
             rospy.loginfo("The CTE: " + str(self.cte))
             pid_step = self.pid_controller.step(self.cte, self.sample_time)
