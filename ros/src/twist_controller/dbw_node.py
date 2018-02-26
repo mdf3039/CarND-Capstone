@@ -128,41 +128,6 @@ class DBWNode(object):
     def dbw_enabled_function(self,msg):
         self.dbw_enabled_bool =  msg.data
         self.dbw_enabled = msg
-    
-    def twist_cmd_function(self,msg):
-        if self.cte==0:
-            return
-        # obtain linear velocity for yaw controller
-        self.linear_velocity = (msg.twist.linear.x**2 + msg.twist.linear.y**2 + msg.twist.linear.z**2 * 1.0)**(1.0/2)
-        # obtain angular velocity for yaw controller
-        self.angular_velocity = (msg.twist.angular.x**2 + msg.twist.angular.y**2 + msg.twist.angular.z**2 * 1.0)**(1.0/2)
-        rospy.loginfo("Wanted linear velocity: " + str(self.linear_velocity))
-        rospy.loginfo("Wanted angular velocity: " + str(self.angular_velocity))
-        # rospy.loginfo("Current linear velocity: " + str(self.current_velocity))
-        # rospy.loginfo("Current angular velocity: " + str(self.current_angular_velocity))
-        #decide whether the angle is positive or negative
-        self.steer_direction = 0
-        if msg.twist.angular.z<0:
-            self.steer_direction = 1
-        if self.prev_sample_time is None:
-            self.sample_time = 0.02
-            self.prev_sample_time = rospy.get_time()
-        else:
-            time = rospy.get_time()
-            self.sample_time = time - self.prev_sample_time
-            self.prev_sample_time = time
-        rospy.loginfo("The CTE from wpt_updtr: " + str(self.cte))
-        rospy.loginfo("The sample time: " + str(self.sample_time))
-        #publish in the twist function
-        throttle, brake, steer = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
-                                                                                self.current_velocity, self.current_angular_velocity, 
-                                                                                self.steer_direction, self.cte, self.sample_time)
-        pid_step = self.pid_controller.step(self.cte, self.sample_time)
-        rospy.loginfo("The PID controller gives value of: " + str(pid_step))
-        rospy.loginfo("The steering angle: " + str(steer))
-        rospy.loginfo("The radius + PID controller gives value of: " + str(steer - pid_step))
-        if self.dbw_enabled_bool:
-            self.publish(throttle, brake, steer+pid_step)
 
     def current_velocity_function(self,msg):
         # rospy.loginfo("Current velocity is loading")
@@ -173,21 +138,6 @@ class DBWNode(object):
         self.current_angular_velocity = (msg.twist.angular.x**2 + msg.twist.angular.y**2 + msg.twist.angular.z**2 * 1.0)**(1.0/2)
         # rospy.loginfo("The current angular velocity is: " + str(self.current_angular_velocity))
         # pass
-
-    def loop(self):
-        rate = rospy.Rate(5) # 50Hz
-        while not rospy.is_shutdown():
-            self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
-            self.twist_cmd_sub = rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_function)
-            self.dbw_enabled_sub = rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_function)
-            # TODO: Get predicted throttle, brake, and steering using `twist_controller`
-            # You should only publish the control commands if dbw is enabled
-            throttle, brake, steer = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
-                                                                                    self.current_velocity, self.current_angular_velocity, 
-                                                                                    self.steer_direction, self.cte, self.sample_time)
-            if self.dbw_enabled_bool:
-                self.publish(throttle, brake, steer)
-            rate.sleep()
 
     def publish(self, throttle, brake, steer):
         tcmd = ThrottleCmd()
