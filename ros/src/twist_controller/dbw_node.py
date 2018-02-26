@@ -119,16 +119,11 @@ class DBWNode(object):
             rospy.loginfo("The CTE: " + str(self.cte))
             pid_step = self.pid_controller.step(self.cte, self.sample_time)
             rospy.loginfo("The PID: " + str(pid_step))
-            rospy.loginfo("The STR: " + str(pid_step*8))
+            rospy.loginfo("The STR: " + str(pid_step))
+            throttle, brake = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
+                                                                                self.current_velocity, self.current_angular_velocity)
             if self.dbw_enabled_bool:
-                self.publish(throttle=.1, brake=0, steer=pid_step*8)
-
-
-    def cte_function(self,msg):
-        self.cte_bool = True
-        self.cte =  msg.data
-        rospy.loginfo("The CTE function has been activated: " + str(self.cte))
-        pass
+                self.publish(throttle=.1, brake=0, steer=pid_step)
     
     def dbw_enabled_function(self,msg):
         self.dbw_enabled_bool =  msg.data
