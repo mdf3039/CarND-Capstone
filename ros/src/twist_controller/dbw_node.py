@@ -60,9 +60,9 @@ class DBWNode(object):
         self.angular_velocity = 0
         self.steer_direction = 0
         self.base_waypoints = None
-        kp = 0.67
-        ki = 0.0#.08 # 1.015
-        kd = 0.9#.35 # 0.5
+        kp = 0.25 # or try these values:
+        ki = 0.01 # kp=0.3, ki=0.0, kd=0.57
+        kd = 0.5
         self.pid_controller = PID(kp, ki, kd)
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
         self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
@@ -124,7 +124,7 @@ class DBWNode(object):
                                                                                 self.current_velocity, self.current_angular_velocity)
 
             if self.dbw_enabled_bool:
-                self.publish(throttle=0.45, brake=0, steer=pid_step)
+                self.publish(throttle=0.43, brake=0, steer=pid_step)
     
     def dbw_enabled_function(self,msg):
         self.dbw_enabled_bool =  msg.data
