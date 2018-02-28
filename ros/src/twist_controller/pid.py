@@ -16,12 +16,12 @@ class PID(object):
     def reset(self):
         self.int_val = 0.0
 
-    def step(self, error, sample_time):
+    def step(self, error, sample_time, kp, ki, kd):
 
         integral = self.int_val + error * sample_time;
         derivative = (error - self.last_error) / sample_time;
 
-        y = self.kp * error + self.ki * integral + self.kd * derivative;
+        y = kp * error + ki * integral + kd * derivative;
         val = max(self.min, min(y, self.max))
 
         if val > self.max:
