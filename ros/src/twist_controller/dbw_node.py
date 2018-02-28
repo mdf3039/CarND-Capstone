@@ -60,6 +60,7 @@ class DBWNode(object):
         self.angular_velocity = 0
         self.steer_direction = 0
         self.base_waypoints = None
+        self.prev_msg = np.array([-1 , -1])
         kp = 0.25 # or try these values:
         ki = 0.01 # kp=0.3, ki=0.0, kd=0.57
         kd = 0.5
@@ -100,7 +101,7 @@ class DBWNode(object):
         rospy.loginfo("The number of oncoming waypoints are: " + str(self.base_waypoints.shape))
 
     def pose_cb(self, msg):
-        rospy.loginfo("Position is updated")
+        rospy.loginfo("Position is updated: " + str(msg.pose.position.x) + "," + str(msg.pose.position.y))
         #Find the closest two waypoints given the position.
         self.steer = 0
         if self.prev_sample_time is None:
@@ -112,6 +113,9 @@ class DBWNode(object):
             self.prev_sample_time = time
         if self.base_waypoints is not None:
             msg = np.array([msg.pose.position.x, msg.pose.position.y])
+            if msg == self.prev_msg:
+                return
+            self.prev_msg = msg
             two_closest_points = self.base_waypoints[np.sort(((self.base_waypoints-msg)**2).sum(axis=1).argsort()[:2])]
             self.cte = np.linalg.norm(np.cross(two_closest_points[0]-two_closest_points[1], two_closest_points[1]-msg))/np.linalg.norm(two_closest_points[0]-two_closest_points[1])
             if ((msg[0]-two_closest_points[0][0])*(two_closest_points[1][1]-two_closest_points[0][1])-(msg[1]-two_closest_points[0][1])*(two_closest_points[1][0]-two_closest_points[0][0])) < 0:
@@ -119,7 +123,7 @@ class DBWNode(object):
             rospy.loginfo("The CTE: " + str(self.cte))
             kp = 5.0
             ki = 0.0#.08 # 1.015
-            kd = 3.0#.35 # 0.5
+            kd = -3.0#.35 # 0.5
             pid_step = self.pid_controller.step(self.cte, self.sample_time, kp/(self.current_velocity+.1), ki, kd)
             rospy.loginfo("The PID: " + str(pid_step))
             rospy.loginfo("The STR: " + str(pid_step))
@@ -127,7 +131,7 @@ class DBWNode(object):
                                                                                 self.current_velocity, self.current_angular_velocity)
 
             if self.dbw_enabled_bool:
-                self.publish(throttle=0.05, brake=0, steer=pid_step)
+                self.publish(throttle=0.02, brake=0, steer=pid_step)
     
     def dbw_enabled_function(self,msg):
         self.dbw_enabled_bool =  msg.data
