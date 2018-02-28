@@ -119,7 +119,7 @@ class DBWNode(object):
             rospy.loginfo("The CTE: " + str(self.cte))
             kp = 5.0
             ki = 0.0#.08 # 1.015
-            kd = 0.0#.35 # 0.5
+            kd = 3.0#.35 # 0.5
             pid_step = self.pid_controller.step(self.cte, self.sample_time, kp/(self.current_velocity+.1), ki, kd)
             rospy.loginfo("The PID: " + str(pid_step))
             rospy.loginfo("The STR: " + str(pid_step))
