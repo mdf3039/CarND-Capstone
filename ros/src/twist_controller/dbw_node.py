@@ -60,9 +60,9 @@ class DBWNode(object):
         self.angular_velocity = 0
         self.steer_direction = 0
         self.base_waypoints = None
-        kp = 0.67
-        ki = 0.0#.08 # 1.015
-        kd = 0.9#.35 # 0.5
+        kp = 0.25 # or try these values:
+        ki = 0.01 # kp=0.3, ki=0.0, kd=0.57
+        kd = 0.5
         self.pid_controller = PID(kp, ki, kd)
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
         self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
@@ -117,10 +117,10 @@ class DBWNode(object):
             if ((msg[0]-two_closest_points[0][0])*(two_closest_points[1][1]-two_closest_points[0][1])-(msg[1]-two_closest_points[0][1])*(two_closest_points[1][0]-two_closest_points[0][0])) < 0:
                 self.cte *= -1
             rospy.loginfo("The CTE: " + str(self.cte))
-            kp = 0.67
+            kp = 1.0
             ki = 0.0#.08 # 1.015
-            kd = 0.9#.35 # 0.5
-            pid_step = self.pid_controller.step(self.cte, self.sample_time, kp, ki, kd)
+            kd = 0.0#.35 # 0.5
+            pid_step = self.pid_controller.step(self.cte, self.sample_time, kp/(self.current_velocity+.1), ki, kd)
             rospy.loginfo("The PID: " + str(pid_step))
             rospy.loginfo("The STR: " + str(pid_step))
             throttle, brake = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
