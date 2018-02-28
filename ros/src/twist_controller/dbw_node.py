@@ -113,7 +113,7 @@ class DBWNode(object):
             self.prev_sample_time = time
         if self.base_waypoints is not None:
             msg = np.array([msg.pose.position.x, msg.pose.position.y])
-            if msg == self.prev_msg:
+            if msg[0]==self.prev_msg[0] and msg[1]==self.prev_msg[1]:
                 return
             self.prev_msg = msg
             two_closest_points = self.base_waypoints[np.sort(((self.base_waypoints-msg)**2).sum(axis=1).argsort()[:2])]
