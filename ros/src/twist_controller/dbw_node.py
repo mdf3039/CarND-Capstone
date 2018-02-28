@@ -117,7 +117,7 @@ class DBWNode(object):
             if ((msg[0]-two_closest_points[0][0])*(two_closest_points[1][1]-two_closest_points[0][1])-(msg[1]-two_closest_points[0][1])*(two_closest_points[1][0]-two_closest_points[0][0])) < 0:
                 self.cte *= -1
             rospy.loginfo("The CTE: " + str(self.cte))
-            kp = 1.0
+            kp = 15.0
             ki = 0.0#.08 # 1.015
             kd = 0.0#.35 # 0.5
             pid_step = self.pid_controller.step(self.cte, self.sample_time, kp/(self.current_velocity+.1), ki, kd)
