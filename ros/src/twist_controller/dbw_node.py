@@ -132,8 +132,8 @@ class DBWNode(object):
             # The difference in the angle will also affect the steering angle
             # Transform the closest points with respect to the orientation and each other to obtain the difference in angle
             for i in range(2):
-                shift_x = two_closest_points[0][0] - msg[0]
-                shift_y = two_closest_points[0][1] - msg[1]
+                shift_x = two_closest_points[i][0] - msg[0]
+                shift_y = two_closest_points[i][1] - msg[1]
                 two_closest_points[i][0] = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position) + .0001
                 two_closest_points[i][1] = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
             rospy.loginfo("Closest transformed: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
