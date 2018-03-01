@@ -137,7 +137,7 @@ class DBWNode(object):
                 angle_difference *= 8 / (50.0/180.0*np.pi)
             kp_angle = 0.5
             ki_angle = 0.0#.08 # 1.015
-            kd_angle = 5.0#.35 # 0.5
+            kd_angle = -5.0#.35 # 0.5
             pid_step_angle = max(min(self.pid_controller_angle.step(angle_difference, self.sample_time, kp_angle, ki_angle, kd_angle), 8), -8)
             self.prev_msg = msg
             rospy.loginfo("The angle difference: " + str(angle_difference))
