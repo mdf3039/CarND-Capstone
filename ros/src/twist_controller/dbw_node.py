@@ -135,7 +135,7 @@ class DBWNode(object):
             else:
                 angle_difference = np.arctan((two_closest_points[0][1]-two_closest_points[1][1])/(two_closest_points[0][0]-two_closest_points[1][0])) - np.arctan((msg[1]-self.prev_msg[1])/(msg[0]-self.prev_msg[0]))
                 angle_difference *= 8 / (50.0/180.0*np.pi)
-            kp_angle = 15/(self.current_velocity+1)
+            kp_angle = 1.5/(self.current_velocity**(+1)
             ki_angle = 0.0#.08 # 1.015
             kd_angle = 0.0#.35 # 0.5
             pid_controller_angle = self.pid_controller_angle.step(angle_difference, self.sample_time, kp_angle, ki_angle, kd_angle)
@@ -148,7 +148,7 @@ class DBWNode(object):
                                                                                 self.current_velocity, self.current_angular_velocity)
 
             if self.dbw_enabled_bool:
-                self.publish(throttle=0.2, brake=0, steer=angle_difference)#*.9 + pid_step*.2)
+                self.publish(throttle=0.2, brake=0, steer=pid_step_angle)#*.9 + pid_step*.2)
     
     def dbw_enabled_function(self,msg):
         self.dbw_enabled_bool =  msg.data
