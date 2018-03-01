@@ -128,7 +128,7 @@ class DBWNode(object):
             kp = 5.0
             ki = 0.0#.08 # 1.015
             kd = 0.0#.35 # 0.5
-            pid_step = max(min(self.pid_controller.step(self.cte, self.sample_time, kp/(self.current_velocity+.1), ki, kd), 8), -8)
+            pid_step = max(min(self.pid_controller.step(self.cte, self.sample_time, kp, ki, kd), 8), -8)
             # The difference in the angle will also affect the steering angle
             # Transform the closest points with respect to the orientation and each other to obtain the difference in angle
             shift_x = two_closest_points[0][0] - two_closest_points[1][0]
