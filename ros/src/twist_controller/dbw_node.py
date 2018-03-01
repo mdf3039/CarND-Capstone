@@ -127,7 +127,7 @@ class DBWNode(object):
             rospy.loginfo("The CTE: " + str(self.cte))
             kp = 5.0
             ki = 0.0#.08 # 1.015
-            kd = -3.0#.35 # 0.5
+            kd = 0.0#.35 # 0.5
             pid_step = max(min(self.pid_controller.step(self.cte, self.sample_time, kp/(self.current_velocity+.1), ki, kd), 8), -8)
             # The difference in the angle will also affect the steering angle
             # Transform the closest points with respect to the orientation and each other to obtain the difference in angle
@@ -135,7 +135,7 @@ class DBWNode(object):
             shift_y = two_closest_points[0][1] - two_closest_points[1][1]
             each_waypointx = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position)
             each_waypointy = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
-            angle_difference = np.arctan(each_waypointy/each_waypointx)
+            angle_difference = np.arctan(each_waypointy/each_waypointx) / (30/180*np.pi) * 8
             rospy.loginfo("The angle difference: " + str(angle_difference))
             rospy.loginfo("The PID: " + str(pid_step))
             rospy.loginfo("The STR: " + str(pid_step))
@@ -143,7 +143,7 @@ class DBWNode(object):
                                                                                 self.current_velocity, self.current_angular_velocity)
 
             if self.dbw_enabled_bool:
-                self.publish(throttle=0.02, brake=0, steer=angle_difference)
+                self.publish(throttle=0.02, brake=0, steer=angle_difference*.9 + pid_step*.1)
     
     def dbw_enabled_function(self,msg):
         self.dbw_enabled_bool =  msg.data
