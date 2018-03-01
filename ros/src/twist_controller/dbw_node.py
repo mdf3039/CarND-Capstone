@@ -65,7 +65,8 @@ class DBWNode(object):
         kp = 0.25 # or try these values:
         ki = 0.01 # kp=0.3, ki=0.0, kd=0.57
         kd = 0.5
-        self.pid_controller = PID(kp, ki, kd)
+        self.pid_controller_cte = PID(kp, ki, kd)
+        self.pid_controller_angle = PID(kp, ki, kd)
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
         self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
         # self.cte_sub = rospy.Subscriber('/cross_track_error',Float64, self.cte_function)
@@ -123,10 +124,10 @@ class DBWNode(object):
             if ((msg[0]-two_closest_points[0][0])*(two_closest_points[1][1]-two_closest_points[0][1])-(msg[1]-two_closest_points[0][1])*(two_closest_points[1][0]-two_closest_points[0][0])) < 0:
                 self.cte *= -1
             rospy.loginfo("The CTE: " + str(self.cte))
-            kp = 5.0
-            ki = 0.0#.08 # 1.015
-            kd = 0.0#.35 # 0.5
-            pid_step = max(min(self.pid_controller.step(self.cte, self.sample_time, kp, ki, kd), 8), -8)
+            kp_cte = 5.0
+            ki_cte = 0.0#.08 # 1.015
+            kd_cte = 0.0#.35 # 0.5
+            pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp, ki, kd), 8), -8)
             # The difference in the angle will also affect the steering angle
             # Since the angle is not accurate, use the previous position
             if np.sum(self.prev_msg)<0:
@@ -134,15 +135,19 @@ class DBWNode(object):
             else:
                 angle_difference = np.arctan((two_closest_points[0][1]-two_closest_points[1][1])/(two_closest_points[0][0]-two_closest_points[1][0])) - np.arctan((msg[1]-self.prev_msg[1])/(msg[0]-self.prev_msg[0]))
                 angle_difference *= 8 / (50.0/180.0*np.pi)
+            kp_angle = 0.5
+            ki_angle = 0.0#.08 # 1.015
+            kd_angle = 5.0#.35 # 0.5
+            pid_step_angle = max(min(self.pid_controller_angle.step(angle_difference, self.sample_time, kp_angle, ki_angle, kd_angle), 8), -8)
             self.prev_msg = msg
             rospy.loginfo("The angle difference: " + str(angle_difference))
-            rospy.loginfo("The PID: " + str(pid_step))
-            rospy.loginfo("The STR: " + str(pid_step))
+            rospy.loginfo("The PID: " + str(pid_step_angle))
+            rospy.loginfo("The STR: " + str(pid_step_angle))
             throttle, brake = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
                                                                                 self.current_velocity, self.current_angular_velocity)
 
             if self.dbw_enabled_bool:
-                self.publish(throttle=0.2, brake=0, steer=angle_difference*.5)#*.9 + pid_step*.2)
+                self.publish(throttle=0.2, brake=0, steer=angle_difference)#*.9 + pid_step*.2)
     
     def dbw_enabled_function(self,msg):
         self.dbw_enabled_bool =  msg.data
