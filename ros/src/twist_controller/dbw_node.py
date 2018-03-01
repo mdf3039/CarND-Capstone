@@ -60,6 +60,7 @@ class DBWNode(object):
         self.angular_velocity = 0
         self.steer_direction = 0
         self.base_waypoints = None
+        self.prev_position = None
         self.prev_msg = np.array([-1 , -1])
         kp = 0.25 # or try these values:
         ki = 0.01 # kp=0.3, ki=0.0, kd=0.57
@@ -102,8 +103,6 @@ class DBWNode(object):
 
     def pose_cb(self, msg):
         rospy.loginfo("Position is updated: " + str(msg.pose.position.x) + "," + str(msg.pose.position.y))
-        cw_position = msg.pose.orientation.w
-        rospy.loginfo("Position Angle: " + str(cw_position) )
         #Find the closest two waypoints given the position.
         self.steer = 0
         if self.prev_sample_time is None:
@@ -117,7 +116,6 @@ class DBWNode(object):
             msg = np.array([msg.pose.position.x, msg.pose.position.y])
             if msg[0]==self.prev_msg[0] and msg[1]==self.prev_msg[1]:
                 return
-            self.prev_msg = msg
             two_closest_points = self.base_waypoints[np.sort(((self.base_waypoints-msg)**2).sum(axis=1).argsort()[:2])]
             rospy.loginfo("Closest points: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
             rospy.loginfo("Closest points: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
@@ -130,15 +128,13 @@ class DBWNode(object):
             kd = 0.0#.35 # 0.5
             pid_step = max(min(self.pid_controller.step(self.cte, self.sample_time, kp, ki, kd), 8), -8)
             # The difference in the angle will also affect the steering angle
-            # Transform the closest points with respect to the orientation and each other to obtain the difference in angle
-            for i in range(2):
-                shift_x = two_closest_points[i][0] - msg[0]
-                shift_y = two_closest_points[i][1] - msg[1]
-                two_closest_points[i][0] = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position) + .0001
-                two_closest_points[i][1] = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
-            rospy.loginfo("Closest transformed: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
-            rospy.loginfo("Closest transformed: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
-            angle_difference = np.arctan((two_closest_points[0][1]-two_closest_points[1][1])/(two_closest_points[0][0]-two_closest_points[1][0])) / (50.0/180.0*np.pi) * 8
+            # Since the angle is not accurate, use the previous position
+            if np.sum(self.prev_msg)<0:
+                angle_difference = 0
+            else:
+                angle_difference = np.arctan((two_closest_points[0][1]-two_closest_points[1][1])/(two_closest_points[0][0]-two_closest_points[1][0])) - np.arctan((msg[1]-self.prev_msg[1])/(msg[0]-self.prev_msg[0]))
+                angle_difference *= 8 / (50.0/180.0*np.pi)
+            self.prev_msg = msg
             rospy.loginfo("The angle difference: " + str(angle_difference))
             rospy.loginfo("The PID: " + str(pid_step))
             rospy.loginfo("The STR: " + str(pid_step))
