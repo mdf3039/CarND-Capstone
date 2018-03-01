@@ -127,7 +127,7 @@ class DBWNode(object):
             kp_cte = 5.0
             ki_cte = 0.0#.08 # 1.015
             kd_cte = 0.0#.35 # 0.5
-            pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp, ki, kd), 8), -8)
+            pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
             # The difference in the angle will also affect the steering angle
             # Since the angle is not accurate, use the previous position
             if np.sum(self.prev_msg)<0:
