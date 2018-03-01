@@ -133,7 +133,7 @@ class DBWNode(object):
             # Transform the closest points with respect to the orientation and each other to obtain the difference in angle
             shift_x = two_closest_points[0][0] - two_closest_points[1][0]
             shift_y = two_closest_points[0][1] - two_closest_points[1][1]
-            each_waypointx = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position)
+            each_waypointx = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position) + .0001
             each_waypointy = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
             angle_difference = np.arctan(each_waypointy/each_waypointx) / (30/180*np.pi) * 8
             rospy.loginfo("The angle difference: " + str(angle_difference))
@@ -143,7 +143,7 @@ class DBWNode(object):
                                                                                 self.current_velocity, self.current_angular_velocity)
 
             if self.dbw_enabled_bool:
-                self.publish(throttle=0.02, brake=0, steer=angle_difference*.9 - pid_step*.1)
+                self.publish(throttle=0.07, brake=0, steer=angle_difference*.9 - pid_step*.4)
     
     def dbw_enabled_function(self,msg):
         self.dbw_enabled_bool =  msg.data
