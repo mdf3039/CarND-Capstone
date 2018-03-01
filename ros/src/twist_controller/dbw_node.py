@@ -138,7 +138,7 @@ class DBWNode(object):
                 two_closest_points[i][1] = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
             rospy.loginfo("Closest transformed: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
             rospy.loginfo("Closest transformed: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
-            angle_difference = np.arctan((two_closest_points[0][1]-two_closest_points[1][1])/(two_closest_points[0][0]-two_closest_points[1][0])) #/ (50.0/180.0*np.pi)
+            angle_difference = np.arctan((two_closest_points[0][1]-two_closest_points[1][1])/(two_closest_points[0][0]-two_closest_points[1][0])) / (50.0/180.0*np.pi) * 8
             rospy.loginfo("The angle difference: " + str(angle_difference))
             rospy.loginfo("The PID: " + str(pid_step))
             rospy.loginfo("The STR: " + str(pid_step))
