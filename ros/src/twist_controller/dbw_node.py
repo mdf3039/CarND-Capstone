@@ -103,7 +103,7 @@ class DBWNode(object):
     def pose_cb(self, msg):
         rospy.loginfo("Position is updated: " + str(msg.pose.position.x) + "," + str(msg.pose.position.y))
         cw_position = msg.pose.orientation.w
-        rospy.loginfo("Position Angle: " + str(msg.pose.position.x) + "," + str(msg.pose.position.y))
+        rospy.loginfo("Position Angle: " + str(cw_position) )
         #Find the closest two waypoints given the position.
         self.steer = 0
         if self.prev_sample_time is None:
@@ -135,7 +135,7 @@ class DBWNode(object):
             shift_y = two_closest_points[0][1] - two_closest_points[1][1]
             each_waypointx = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position) + .0001
             each_waypointy = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
-            angle_difference = np.arctan(each_waypointy/each_waypointx) / (50.0/180.0*np.pi) * 8.0
+            angle_difference = np.arctan(each_waypointy/each_waypointx) / (50.0/180.0*np.pi)
             rospy.loginfo("The angle difference: " + str(angle_difference))
             rospy.loginfo("The PID: " + str(pid_step))
             rospy.loginfo("The STR: " + str(pid_step))
