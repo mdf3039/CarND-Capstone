@@ -126,7 +126,7 @@ class DBWNode(object):
             rospy.loginfo("The CTE: " + str(self.cte))
             kp_cte = 0.12
             ki_cte = 0.16#.08 # 1.015
-            kd_cte = 0.0#.35 # 0.5
+            kd_cte = 10.0#.35 # 0.5
             pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
             # The difference in the angle will also affect the steering angle
             # Since the angle is not accurate, use the previous position
@@ -148,7 +148,7 @@ class DBWNode(object):
                                                                                 self.current_velocity, self.current_angular_velocity)
 
             if self.dbw_enabled_bool:
-                self.publish(throttle=0.1, brake=0, steer=pid_step_angle+pid_step_cte)#*.9 + pid_step*.2)
+                self.publish(throttle=0.1, brake=0, steer=pid_step_angle+pid_step_cte)
     
     def dbw_enabled_function(self,msg):
         self.dbw_enabled_bool =  msg.data
