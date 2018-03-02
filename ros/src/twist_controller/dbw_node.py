@@ -136,7 +136,7 @@ class DBWNode(object):
                 angle_difference = np.arctan((two_closest_points[0][1]-two_closest_points[1][1])/(two_closest_points[0][0]-two_closest_points[1][0])) - np.arctan((msg[1]-self.prev_msg[1])/(msg[0]-self.prev_msg[0]))
                 angle_difference *= 8 / (50.0/180.0*np.pi)
             kp_angle = 20.0/(self.current_velocity+10)
-            ki_angle = .1/(self.current_velocity+10)
+            ki_angle = .1/(self.current_velocity+20)
             kd_angle = 0.0#.35 # 0.5
             pid_controller_angle = self.pid_controller_angle.step(angle_difference, self.sample_time, kp_angle, ki_angle, kd_angle)
             pid_step_angle = max(min(self.pid_controller_angle.step(angle_difference, self.sample_time, kp_angle, ki_angle, kd_angle), 8), -8)
