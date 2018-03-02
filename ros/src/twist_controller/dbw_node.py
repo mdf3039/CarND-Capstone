@@ -126,7 +126,7 @@ class DBWNode(object):
             rospy.loginfo("The CTE: " + str(self.cte))
             kp_cte = 0.2
             ki_cte = 0.0#.08 # 1.015
-            kd_cte = 2.0#.35 # 0.5
+            kd_cte = 1.0#.35 # 0.5
             pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
             # The difference in the angle will also affect the steering angle
             # Since the angle is not accurate, use the previous position
