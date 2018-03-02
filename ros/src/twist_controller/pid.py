@@ -31,7 +31,7 @@ class PID(object):
             val = self.max
         elif val < self.min:
             val = self.min
-        else:
+        # else:
             # self.int_val = integral
         self.last_error = error
 
