@@ -1,4 +1,5 @@
 from collections import deque
+import numpy as np
 
 MIN_NUM = float('-inf')
 MAX_NUM = float('inf')
