@@ -125,7 +125,7 @@ class DBWNode(object):
                 self.cte *= -1
             rospy.loginfo("The CTE: " + str(self.cte))
             kp_cte = 0.16
-            ki_cte = 0.06#.08 # 1.015
+            ki_cte = 0.16#.08 # 1.015
             kd_cte = 0.0#.35 # 0.5
             pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
             # The difference in the angle will also affect the steering angle
@@ -143,7 +143,7 @@ class DBWNode(object):
             self.prev_msg = msg
             rospy.loginfo("The angle difference: " + str(angle_difference))
             rospy.loginfo("The PID: " + str(pid_controller_angle))
-            rospy.loginfo("The STR: " + str(pid_step_angle))
+            rospy.loginfo("The STR: " + str(pid_step_angle+pid_step_cte))
             throttle, brake = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
                                                                                 self.current_velocity, self.current_angular_velocity)
 
