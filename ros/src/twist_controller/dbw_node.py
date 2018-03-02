@@ -148,7 +148,7 @@ class DBWNode(object):
                                                                                 self.current_velocity, self.current_angular_velocity)
 
             if self.dbw_enabled_bool:
-                self.publish(throttle=0.2, brake=0, steer=pid_step_cte)#pid_step_angle+pid_step_cte)#*.9 + pid_step*.2)
+                self.publish(throttle=0.1, brake=0, steer=pid_step_angle+pid_step_cte)#*.9 + pid_step*.2)
     
     def dbw_enabled_function(self,msg):
         self.dbw_enabled_bool =  msg.data
