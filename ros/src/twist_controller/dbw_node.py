@@ -124,7 +124,7 @@ class DBWNode(object):
             if ((msg[0]-two_closest_points[0][0])*(two_closest_points[1][1]-two_closest_points[0][1])-(msg[1]-two_closest_points[0][1])*(two_closest_points[1][0]-two_closest_points[0][0])) < 0:
                 self.cte *= -1
             rospy.loginfo("The CTE: " + str(self.cte))
-            kp_cte = 0.2
+            kp_cte = 0.05
             ki_cte = 0.0#.08 # 1.015
             kd_cte = 0.0#.35 # 0.5
             pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
@@ -148,7 +148,7 @@ class DBWNode(object):
                                                                                 self.current_velocity, self.current_angular_velocity)
 
             if self.dbw_enabled_bool:
-                self.publish(throttle=0.2, brake=0, steer=pid_step_angle+pid_step_cte)#*.9 + pid_step*.2)
+                self.publish(throttle=0.2, brake=0, steer=pid_step_cte)#pid_step_angle+pid_step_cte)#*.9 + pid_step*.2)
     
     def dbw_enabled_function(self,msg):
         self.dbw_enabled_bool =  msg.data
