@@ -25,7 +25,7 @@ class PID(object):
         self.d1.append(error*sample_time)
         derivative = (error - self.last_error) / sample_time;
 
-        y = kp * error + ki * np.sum(self.d1,axis=0) + kd * derivative;
+        y = kp * error + ki * np.average(self.d1,axis=0) + kd * derivative;
         val = y # max(self.min, min(y, self.max))
 
         if val > self.max:
