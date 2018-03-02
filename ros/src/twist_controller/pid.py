@@ -1,3 +1,4 @@
+from collections import deque
 
 MIN_NUM = float('-inf')
 MAX_NUM = float('inf')
@@ -10,6 +11,7 @@ class PID(object):
         self.kd = kd
         self.min = mn
         self.max = mx
+        self.d1 = deque(maxlen=8)
 
         self.int_val = self.last_error = 0.
 
@@ -18,10 +20,11 @@ class PID(object):
 
     def step(self, error, sample_time, kp, ki, kd):
 
-        integral = self.int_val + error * sample_time;
+        # integral = self.int_val + error * sample_time;
+        self.d1.append(error*sample_time)
         derivative = (error - self.last_error) / sample_time;
 
-        y = kp * error + ki * integral + kd * derivative;
+        y = kp * error + ki * np.sum(self.d1,axis=0) + kd * derivative;
         val = y # max(self.min, min(y, self.max))
 
         if val > self.max:
@@ -29,7 +32,7 @@ class PID(object):
         elif val < self.min:
             val = self.min
         else:
-            self.int_val = integral
+            # self.int_val = integral
         self.last_error = error
 
         return val
