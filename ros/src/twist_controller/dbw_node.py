@@ -142,7 +142,7 @@ class DBWNode(object):
                 radius = (((msg-x)**2).sum()*1.0)**(1.0/2)
                 rospy.loginfo("Radius: " + str(radius))
                 #convert the angle into degrees then divide by the steering ratio to get the steer value
-                angle = np.arcsin(self.wheel_base/radius) * (180.0/np.pi)
+                angle = np.arcsin(self.wheel_base/radius) #* (180.0/np.pi)
                 steer_value = angle * self.steer_ratio
                 #to get the direction of the steer value, transform the last point into the coordinate space. If the slope is
                 #negative, then the steer value is negative
