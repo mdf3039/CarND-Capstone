@@ -161,9 +161,7 @@ class DBWNode(object):
             except:
                 steer_value = 0
             #the sign of the steer value depends on the slope from the first to the last point
-            two_closest_points = self.base_waypoints[np.sort(wp_distances.argsort()[:2])]
-            rospy.loginfo("Closest points: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
-            rospy.loginfo("Closest points: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
+            two_closest_points = self.base_waypoints[np.sort(wp_distances.argsort()[:2])].copy()
             self.cte = np.linalg.norm(np.cross(two_closest_points[0]-two_closest_points[1], two_closest_points[1]-msg))/np.linalg.norm(two_closest_points[0]-two_closest_points[1])
             # make sure the waypoints are in the correct order by comparing their distance from the previous midpoint
             # keep the last two midpoints
@@ -173,10 +171,14 @@ class DBWNode(object):
             elif np.all(self.prev_midpoint==np.divide(np.add(two_closest_points[0],two_closest_points[1]),2.0)):
                 two_closest_points = self.two_closest_points.copy()
             else:
-                #if the midpoints are not equal, sort by proximity to the midpoint
+                #if the midpoints are not equal, sort by proximity to the previous midpoint
+                rospy.loginfo("Closest points may change: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
+                rospy.loginfo("Closest points may change: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
                 self.two_closest_points = two_closest_points[((two_closest_points-self.prev_midpoint)**2).sum(axis=1).argsort()]
                 two_closest_points = self.two_closest_points.copy()
                 self.prev_midpoint = np.divide(np.add(two_closest_points[0],two_closest_points[1]),2.0)
+            rospy.loginfo("Closest points: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
+            rospy.loginfo("Closest points: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
             # transform the current position with respect to the direction of the two closest points
             each_waypointx = msg[0]
             each_waypointy = msg[1]
