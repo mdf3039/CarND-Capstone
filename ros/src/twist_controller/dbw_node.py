@@ -132,7 +132,7 @@ class DBWNode(object):
             circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+8)%len(wp_distances)]))
             rospy.loginfo("circle_points: " + str(circle_points.shape))
             #use the three points to find the radius of the circle
-            eval_matrix = np.hstack((-2*circle_points[:,0],-2*circle_points[:,1],(circle_points**2).sum(axis=1)))
+            eval_matrix = np.vstack((-2*circle_points[:,0],-2*circle_points[:,1],(circle_points**2).sum(axis=1))).T
             rospy.loginfo("eval_matrix: " + str(eval_matrix.shape))
             #subtract the last entry of the eval matrix from the others and keep the first two rows
             eval_matrix = np.subtract(eval_matrix,eval_matrix[2])[0:2]
