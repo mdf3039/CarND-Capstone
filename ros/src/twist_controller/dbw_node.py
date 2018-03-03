@@ -138,8 +138,21 @@ class DBWNode(object):
                 #convert the angle into degrees then divide by the steering ratio to get the steer value
                 angle = np.arcsin(self.wheel_base/radius) * (180.0/np.pi)
                 steer_value = angle * self.steer_ratio
+                #to get the direction of the steer value, transform the last point into the coordinate space. If the slope is
+                #negative, then the steer value is negative
+                each_waypointx = circle_points[2,0]
+                each_waypointy = circle_points[2,1]
+                cw_position = np.arctan2(msg[1]-self.prev_msg[1],msg[0]-self.prev_msg[0])
+                # transform the waypoint
+                shift_x = each_waypointx - circle_points[0,0]
+                shift_y = each_waypointy - circle_points[0,1]
+                each_waypointx = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position)
+                each_waypointy = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
+                if each_waypointy<0:
+                    steer_value *= -1
             except:
                 steer_value = 0
+            #the sign of the steer value depends on the slope from the first to the last point
             two_closest_points = self.base_waypoints[np.sort(wp_distances.argsort()[:2])]
             rospy.loginfo("Closest points: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
             rospy.loginfo("Closest points: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
@@ -147,7 +160,7 @@ class DBWNode(object):
             if ((msg[0]-two_closest_points[0][0])*(two_closest_points[1][1]-two_closest_points[0][1])-(msg[1]-two_closest_points[0][1])*(two_closest_points[1][0]-two_closest_points[0][0])) < 0:
                 self.cte *= -1
             rospy.loginfo("The CTE: " + str(self.cte))
-            kp_cte = 0.1###07 best is 0.31, .41
+            kp_cte = 0.2###07 best is 0.31, .41
             ki_cte = 0.0#16#.08 # 1.015
             kd_cte = 0.04#.35 # 0.5
             pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
