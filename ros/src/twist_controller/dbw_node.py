@@ -163,10 +163,10 @@ class DBWNode(object):
             rospy.loginfo("Closest points: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
             rospy.loginfo("Closest points: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
             self.cte = np.linalg.norm(np.cross(two_closest_points[0]-two_closest_points[1], two_closest_points[1]-msg))/np.linalg.norm(two_closest_points[0]-two_closest_points[1])
-            if ((msg[0]-two_closest_points[0][0])*(two_closest_points[1][1]-two_closest_points[0][1])-(msg[1]-two_closest_points[0][1])*(two_closest_points[1][0]-two_closest_points[0][0])) < 0:
+            if ((msg[0]-two_closest_points[0][0])*(two_closest_points[1][1]-two_closest_points[0][1])-(msg[1]-two_closest_points[0][1])*(two_closest_points[1][0]-two_closest_points[0][0])) > 0:
                 self.cte *= -1
             rospy.loginfo("The CTE: " + str(self.cte))
-            kp_cte = 1.0###07 best is 0.31, .41
+            kp_cte = .5###07 best is 0.31, .41
             ki_cte = 0.0#16#.08 # 1.015
             kd_cte = 0.0#.35 # 0.5
             pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
@@ -190,7 +190,7 @@ class DBWNode(object):
                                                                                 self.current_velocity, self.current_angular_velocity)
 
             if self.dbw_enabled_bool:
-                self.publish(throttle=0.1, brake=0, steer=-1)#steer_value+pid_step_angle+pid_step_cte)
+                self.publish(throttle=0.1, brake=0, steer=steer_value+pid_step_angle+pid_step_cte)
     
     def dbw_enabled_function(self,msg):
         self.dbw_enabled_bool =  msg.data
