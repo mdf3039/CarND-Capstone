@@ -44,8 +44,8 @@ class DBWNode(object):
         decel_limit = rospy.get_param('~decel_limit', -5)
         accel_limit = rospy.get_param('~accel_limit', 1.)
         wheel_radius = rospy.get_param('~wheel_radius', 0.2413)
-        wheel_base = rospy.get_param('~wheel_base', 2.8498)
-        steer_ratio = rospy.get_param('~steer_ratio', 14.8)
+        self.wheel_base = rospy.get_param('~wheel_base', 2.8498)
+        self.steer_ratio = rospy.get_param('~steer_ratio', 14.8)
         max_lat_accel = rospy.get_param('~max_lat_accel', 3.)
         max_steer_angle = rospy.get_param('~max_steer_angle', 8.)
         
@@ -122,7 +122,25 @@ class DBWNode(object):
         if self.base_waypoints is not None:
             if msg[0]==self.prev_msg[0] and msg[1]==self.prev_msg[1]:
                 return
-            two_closest_points = self.base_waypoints[np.sort(((self.base_waypoints-msg)**2).sum(axis=1).argsort()[:2])]
+            #the distances from the current position for all waypoints
+            wp_distances = ((self.base_waypoints-msg)**2).sum(axis=1)
+            #find and append the fourth and eighth point
+            circle_points = msg.copy()
+            circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+4)%len(wp_distances)]))
+            circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+8)%len(wp_distances)]))
+            #use the three points to find the radius of the circle
+            eval_matrix = np.hstack((-2*circle_points[:,0],-2*circle_points[:,1],(circle_points**2).sum(axis=1)))
+            #subtract the last entry of the eval matrix from the others and keep the first two rows
+            eval_matrix = np.subtract(eval_matrix,eval_matrix[2])[0:2]
+            try:
+                x = np.linalg.solve(eval_matrix[:,0:2],eval_matrix[:,2])
+                radius = (((msg-x)**2).sum()*1.0)**(1.0/2)
+                #convert the angle into degrees then divide by the steering ratio to get the steer value
+                angle = np.arcsin(self.wheel_base/radius) * (180.0/np.pi)
+                steer_value = angle * self.steer_ratio
+            except:
+                steer_value = 0
+            two_closest_points = self.base_waypoints[np.sort(wp_distances.argsort()[:2])]
             rospy.loginfo("Closest points: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
             rospy.loginfo("Closest points: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
             self.cte = np.linalg.norm(np.cross(two_closest_points[0]-two_closest_points[1], two_closest_points[1]-msg))/np.linalg.norm(two_closest_points[0]-two_closest_points[1])
@@ -153,7 +171,7 @@ class DBWNode(object):
                                                                                 self.current_velocity, self.current_angular_velocity)
 
             if self.dbw_enabled_bool:
-                self.publish(throttle=0.1, brake=0, steer=pid_step_angle+pid_step_cte)
+                self.publish(throttle=0.1, brake=0, steer=steer_value*np.sign(angle_difference)+pid_step_angle+pid_step_cte)
     
     def dbw_enabled_function(self,msg):
         self.dbw_enabled_bool =  msg.data
