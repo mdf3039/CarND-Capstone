@@ -160,9 +160,9 @@ class DBWNode(object):
             if ((msg[0]-two_closest_points[0][0])*(two_closest_points[1][1]-two_closest_points[0][1])-(msg[1]-two_closest_points[0][1])*(two_closest_points[1][0]-two_closest_points[0][0])) < 0:
                 self.cte *= -1
             rospy.loginfo("The CTE: " + str(self.cte))
-            kp_cte = 0.2###07 best is 0.31, .41
+            kp_cte = 0.5###07 best is 0.31, .41
             ki_cte = 0.0#16#.08 # 1.015
-            kd_cte = 0.04#.35 # 0.5
+            kd_cte = 0.3#.35 # 0.5
             pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
             # The difference in the angle will also affect the steering angle
             # Since the angle is not accurate, use the previous position
@@ -177,14 +177,14 @@ class DBWNode(object):
             pid_controller_angle = self.pid_controller_angle.step(angle_difference, self.sample_time, kp_angle, ki_angle, kd_angle)
             pid_step_angle = max(min(self.pid_controller_angle.step(angle_difference, self.sample_time, kp_angle, ki_angle, kd_angle), 8), -8)
             self.prev_msg = msg
-            rospy.loginfo("The angle difference: " + str(angle_difference))
-            rospy.loginfo("The PID: " + str(pid_controller_angle))
-            rospy.loginfo("The STR: " + str(pid_step_angle+pid_step_cte))
+            rospy.loginfo("The steer value: " + str(steer_value))
+            rospy.loginfo("The PID CTE: " + str(pid_step_cte))
+            rospy.loginfo("The STR: " + str(steer_value+pid_step_angle+pid_step_cte))
             throttle, brake = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
                                                                                 self.current_velocity, self.current_angular_velocity)
 
             if self.dbw_enabled_bool:
-                self.publish(throttle=0.1, brake=0, steer=steer_value*np.sign(angle_difference)+pid_step_angle+pid_step_cte)
+                self.publish(throttle=0.1, brake=0, steer=steer_value+pid_step_angle+pid_step_cte)
     
     def dbw_enabled_function(self,msg):
         self.dbw_enabled_bool =  msg.data
