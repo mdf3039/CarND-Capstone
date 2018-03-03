@@ -104,6 +104,9 @@ class DBWNode(object):
 
     def pose_cb(self, msg):
         rospy.loginfo("Position is updated: " + str(msg.pose.position.x) + "," + str(msg.pose.position.y))
+        msg = np.array([msg.pose.position.x, msg.pose.position.y])
+        if msg[0]==self.prev_msg[0] and msg[1]==self.prev_msg[1]:
+            return
         #Find the closest two waypoints given the position.
         self.steer = 0
         if self.prev_sample_time is None:
