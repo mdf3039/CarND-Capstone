@@ -124,8 +124,8 @@ class DBWNode(object):
                 return
             #the distances from the current position for all waypoints
             wp_distances = ((self.base_waypoints-msg)**2).sum(axis=1)
-            #find and append the fourth and eighth point
-            circle_points = msg.copy()
+            #find and append the closest, fourth, and eighth point
+            circle_points = self.base_waypoints[np.argmin(wp_distances)]
             circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+4)%len(wp_distances)]))
             circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+8)%len(wp_distances)]))
             #use the three points to find the radius of the circle
