@@ -112,6 +112,7 @@ class DBWNode(object):
         else:
             time = rospy.get_time()
             self.sample_time = time - self.prev_sample_time
+            rospy.loginfo("Delta Time: " + str(self.sample_time))
             self.prev_sample_time = time
         if self.base_waypoints is not None:
             msg = np.array([msg.pose.position.x, msg.pose.position.y])
