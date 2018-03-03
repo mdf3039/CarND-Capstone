@@ -163,10 +163,20 @@ class DBWNode(object):
             rospy.loginfo("Closest points: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
             rospy.loginfo("Closest points: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
             self.cte = np.linalg.norm(np.cross(two_closest_points[0]-two_closest_points[1], two_closest_points[1]-msg))/np.linalg.norm(two_closest_points[0]-two_closest_points[1])
-            if ((msg[0]-two_closest_points[0][0])*(two_closest_points[1][1]-two_closest_points[0][1])-(msg[1]-two_closest_points[0][1])*(two_closest_points[1][0]-two_closest_points[0][0])) > 0:
+            # transform the current position with respect to the direction of the two closest points
+            each_waypointx = msg[0]
+            each_waypointy = msg[1]
+            cw_position = np.arctan2(two_closest_points[1][1]-two_closest_points[0][1],two_closest_points[1][0]-two_closest_points[0][0])
+            # transform the waypoint
+            shift_x = each_waypointx - two_closest_points[0][0]
+            shift_y = each_waypointy - two_closest_points[0][1]
+            each_waypointx = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position)
+            each_waypointy = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
+            # if ((msg[0]-two_closest_points[0][0])*(two_closest_points[1][1]-two_closest_points[0][1])-(msg[1]-two_closest_points[0][1])*(two_closest_points[1][0]-two_closest_points[0][0])) > 0:
+            if each_waypointy<0:
                 self.cte *= -1
             rospy.loginfo("The CTE: " + str(self.cte))
-            kp_cte = .5###07 best is 0.31, .41
+            kp_cte = .3###07 best is 0.31, .41
             ki_cte = 0.0#16#.08 # 1.015
             kd_cte = 0.0#.35 # 0.5
             pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
