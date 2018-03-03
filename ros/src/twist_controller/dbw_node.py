@@ -126,7 +126,7 @@ class DBWNode(object):
             wp_distances = ((self.base_waypoints-msg)**2).sum(axis=1)
             #find and append the closest, fourth, and eighth point
             circle_points = self.base_waypoints[np.argmin(wp_distances)]
-            rospy.loginfo("circle_points: " + str(circle_points.shape))
+            rospy.loginfo("circle_points: " + str(circle_points))
             circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+4)%len(wp_distances)]))
             rospy.loginfo("circle_points: " + str(circle_points.shape))
             circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+8)%len(wp_distances)]))
@@ -138,8 +138,9 @@ class DBWNode(object):
             eval_matrix = np.subtract(eval_matrix,eval_matrix[2])[0:2]
             try:
                 x = np.linalg.solve(eval_matrix[:,0:2],eval_matrix[:,2])
+                rospy.loginfo("X obtained: " + str(x))
                 radius = (((msg-x)**2).sum()*1.0)**(1.0/2)
-                rospy.loginfo("Radius: " + radius)
+                rospy.loginfo("Radius: " + str(radius))
                 #convert the angle into degrees then divide by the steering ratio to get the steer value
                 angle = np.arcsin(self.wheel_base/radius) * (180.0/np.pi)
                 steer_value = angle * self.steer_ratio
