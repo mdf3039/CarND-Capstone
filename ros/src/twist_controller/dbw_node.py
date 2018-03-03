@@ -163,6 +163,18 @@ class DBWNode(object):
             rospy.loginfo("Closest points: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
             rospy.loginfo("Closest points: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
             self.cte = np.linalg.norm(np.cross(two_closest_points[0]-two_closest_points[1], two_closest_points[1]-msg))/np.linalg.norm(two_closest_points[0]-two_closest_points[1])
+            # make sure the waypoints are in the correct order by comparing their distance from the previous midpoint
+            # keep the last two midpoints
+            if self.prev_midpoint is None:
+                self.two_closest_points = two_closest_points.copy()
+                self.prev_midpoint = np.divide(np.add(two_closest_points[0],two_closest_points[1]),2.0)
+            elif np.all(self.prev_midpoint==np.divide(np.add(two_closest_points[0],two_closest_points[1]),2.0)):
+                two_closest_points = self.two_closest_points.copy()
+            else:
+                #if the midpoints are not equal, sort by proximity to the midpoint
+                self.two_closest_points = two_closest_points[((two_closest_points-self.prev_midpoint)**2).sum(axis=1).argsort()]
+                two_closest_points = self.two_closest_points.copy()
+                self.prev_midpoint = np.divide(np.add(two_closest_points[0],two_closest_points[1]),2.0)
             # transform the current position with respect to the direction of the two closest points
             each_waypointx = msg[0]
             each_waypointy = msg[1]
