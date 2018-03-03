@@ -103,6 +103,8 @@ class DBWNode(object):
         rospy.loginfo("The number of oncoming waypoints are: " + str(self.base_waypoints.shape))
 
     def pose_cb(self, msg):
+        if self.base_waypoints is None:
+            return
         rospy.loginfo("Position is updated: " + str(msg.pose.position.x) + "," + str(msg.pose.position.y))
         msg = np.array([msg.pose.position.x, msg.pose.position.y])
         if msg[0]==self.prev_msg[0] and msg[1]==self.prev_msg[1]:
@@ -110,7 +112,7 @@ class DBWNode(object):
         #Find the closest two waypoints given the position.
         self.steer = 0
         if self.prev_sample_time is None:
-            self.sample_time = 0.02
+            self.sample_time = 0.2
             self.prev_sample_time = rospy.get_time()
         else:
             time = rospy.get_time()
