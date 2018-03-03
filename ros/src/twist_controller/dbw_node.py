@@ -62,6 +62,8 @@ class DBWNode(object):
         self.base_waypoints = None
         self.prev_position = None
         self.prev_msg = np.array([-1 , -1])
+        self.prev_midpoint = None:
+        self.two_closest_points = None
         kp = 0.0 # or try these values:
         ki = 0.0 # kp=0.3, ki=0.0, kd=0.57
         kd = 0.0
