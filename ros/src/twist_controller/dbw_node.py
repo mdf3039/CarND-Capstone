@@ -188,8 +188,8 @@ class DBWNode(object):
             # transform the waypoint
             shift_x = each_waypointx - two_closest_points[0][0]
             shift_y = each_waypointy - two_closest_points[0][1]
-            each_waypointx = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position)
-            each_waypointy = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
+            each_waypointx = shift_x * math.cos(cw_position) + shift_y * math.sin(cw_position)
+            each_waypointy = -1 * shift_x * math.sin(cw_position) + shift_y * math.cos(cw_position)
             rospy.loginfo("shift_x: " + str(shift_x))
             rospy.loginfo("shift_y: " + str(shift_y))
             rospy.loginfo("each_waypointx: " + str(each_waypointx))
@@ -197,10 +197,10 @@ class DBWNode(object):
             # if ((msg[0]-two_closest_points[0][0])*(two_closest_points[1][1]-two_closest_points[0][1])-(msg[1]-two_closest_points[0][1])*(two_closest_points[1][0]-two_closest_points[0][0])) > 0:
             self.cte = abs(np.linalg.norm(np.cross(two_closest_points[0]-two_closest_points[1], two_closest_points[1]-msg))/np.linalg.norm(two_closest_points[0]-two_closest_points[1]))
             rospy.loginfo("The CTE: " + str(self.cte))
-            if each_waypointy<0:
+            if each_waypointy>0:
                 self.cte *= -1
-            if cw_position==0 and two_closest_points[1][0]>two_closest_points[0][0]:
-                self.cte *=-1
+            # if cw_position==0 and two_closest_points[1][0]>two_closest_points[0][0]:
+            #     self.cte *=-1
             rospy.loginfo("The CTE: " + str(self.cte))
             kp_cte = .3###07 best is 0.31, .41
             ki_cte = 0.0#16#.08 # 1.015
