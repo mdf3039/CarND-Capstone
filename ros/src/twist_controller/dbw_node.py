@@ -64,6 +64,8 @@ class DBWNode(object):
         self.prev_msg = np.array([-1 , -1])
         self.prev_midpoint = None
         self.two_closest_points = None
+        self.prev_light_msg = -1
+        self.light_msg = -1
         kp = 0.0 # or try these values:
         ki = 0.0 # kp=0.3, ki=0.0, kd=0.57
         kd = 0.0
@@ -76,6 +78,7 @@ class DBWNode(object):
         self.dbw_enabled_bool = False
         self.dbw_enabled_sub = rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_function)
         self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+        self.traffic_waypoint = rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
 
         # obtain min_speed for the yaw controller by adding the deceleration times time to the current velocity
         self.min_speed = 0 #max(0, decel_limit*time + self.current_velocity(needs to be finished))
@@ -199,8 +202,6 @@ class DBWNode(object):
             rospy.loginfo("The CTE: " + str(self.cte))
             if each_waypointy<0:
                 self.cte *= -1
-            # if cw_position==0 and two_closest_points[1][0]>two_closest_points[0][0]:
-            #     self.cte *=-1
             rospy.loginfo("The CTE: " + str(self.cte))
             kp_cte = .3###07 best is 0.31, .41
             ki_cte = 0.0#16#.08 # 1.015
@@ -211,7 +212,7 @@ class DBWNode(object):
             if np.sum(self.prev_msg)<0:
                 angle_difference = 0
             else:
-                angle_difference = np.arctan((two_closest_points[0][1]-two_closest_points[1][1])/(two_closest_points[0][0]-two_closest_points[1][0])) - np.arctan((msg[1]-self.prev_msg[1])/(msg[0]-self.prev_msg[0]))
+                angle_difference = np.arctan2(two_closest_points[0][1]-two_closest_points[1][1],two_closest_points[0][0]-two_closest_points[1][0]) - np.arctan2(msg[1]-self.prev_msg[1],msg[0]-self.prev_msg[0])
                 angle_difference *= 8 / (50.0/180.0*np.pi)
             kp_angle = 0.0#05#20.0/(self.current_velocity+10)
             ki_angle = 0.0#-.1/(self.current_velocity+20)
@@ -228,6 +229,29 @@ class DBWNode(object):
             if self.dbw_enabled_bool:
                 self.publish(throttle=0.1, brake=0, steer=steer_value+pid_step_angle+pid_step_cte)
     
+    def traffic_cb(self, msg):
+        #choose the model, depending upon the msg
+        self.light_msg = msg.data
+        if self.light_msg==-2:
+            # Unknown traffic light. Use previous model
+            self.light_msg = self.prev_light_msg
+        if self.light_msg==-1:
+            # Green light or far distance from red model
+            #If the previous message was red, do not do anything
+            if self.prev_light_msg>=0:
+                self.drive_model = -2
+            else:
+                #use the green drive model
+                self.drive_model = self.light_msg
+        elif self.light_msg>=0:
+            # Red or Yellow light model
+            #If the previous message was green, do not do anything
+            if self.prev_light_msg==-1:
+                self.drive_model = -2
+            self.mpc_model = self.ModelStop
+            self.stopping_waypoint_index = msg
+        self.prev_light_msg = self.light_msg
+
     def dbw_enabled_function(self,msg):
         self.dbw_enabled_bool =  msg.data
         self.dbw_enabled = msg
