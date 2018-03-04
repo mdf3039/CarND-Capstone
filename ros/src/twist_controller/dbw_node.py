@@ -242,6 +242,7 @@ class DBWNode(object):
                     throttle, brake = self.current_velocity*.1/5.36 + .15, 0
             elif self.drive_model >= 0:
                 #brake at a rate of current_velocity**2/(2*distance)
+                self.drive_model = self.drive_model
                 
 
 
