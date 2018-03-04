@@ -209,7 +209,7 @@ class DBWNode(object):
             if np.cross(two_closest_points[1]-two_closest_points[0],msg-two_closest_points[0])>0:
                 self.cte *= -1
             rospy.loginfo("The CTE: " + str(self.cte))
-            kp_cte = .3###07 best is 0.31, .41
+            kp_cte = 0.0###07 best is 0.31, .41
             ki_cte = 0.0#16#.08 # 1.015
             kd_cte = 0.0#.35 # 0.5
             pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
@@ -243,7 +243,9 @@ class DBWNode(object):
                     throttle, brake = self.current_velocity*.1/5.36 + .15, 0
             elif self.drive_model >= 0:
                 #brake at a rate of current_velocity**2/(2*distance)
-                self.drive_model = self.drive_model
+                wp_2_pos = ((msg-self.base_waypoints[self.drive_model])**2).sum()
+                brake_rate = self.current_velocity**2/(2*wp_2_pos)
+
             # throttle, brake = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
             #                                                                     self.current_velocity, self.current_angular_velocity)
             if self.dbw_enabled_bool:
