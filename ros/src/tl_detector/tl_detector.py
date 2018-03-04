@@ -160,7 +160,9 @@ class TLDetector(object):
         # The msg or self.camera_image is the image. Feed it into your model. Return the traffic light 
         # classification as the variable state (not self.state) 
         # Unknown_Light = 4, Green_Light = 2, Yellow_Light = 1, Red_Light = 0
-        state = self.Unknown_Light ##change this
+ 
+        cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
+        state = self.light_classifier.get_classification(cv_image)
 
         '''
         Publish upcoming red lights at camera frequency.
