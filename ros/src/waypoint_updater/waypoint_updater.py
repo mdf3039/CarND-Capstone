@@ -31,6 +31,10 @@ MAX_DECELERATION = 5.0
 
 
 class WaypointUpdater(object):
+    
+    ModelStop = 1
+    ModelGo = 2
+    
     def __init__(self):
         rospy.init_node('waypoint_updater')
 
@@ -141,7 +145,7 @@ class WaypointUpdater(object):
 
     def traffic_cb(self, msg):
         #choose the model, depending upon the msg
-        msg = int(str(msg))
+        msg = msg.data
         if msg==-2:
             # Unknown traffic light. Use previous model
             None
