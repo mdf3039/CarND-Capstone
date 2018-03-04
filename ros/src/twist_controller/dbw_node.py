@@ -248,8 +248,9 @@ class DBWNode(object):
             #If the previous message was green, do not do anything
             if self.prev_light_msg==-1:
                 self.drive_model = -2
-            self.mpc_model = self.ModelStop
-            self.stopping_waypoint_index = msg
+            else:
+                #use the red drive model
+                self.drive_model = self.light_msg
         self.prev_light_msg = self.light_msg
 
     def dbw_enabled_function(self,msg):
