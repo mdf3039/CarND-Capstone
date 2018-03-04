@@ -183,11 +183,11 @@ class DBWNode(object):
             each_waypointy = msg[1]
             rospy.loginfo("each_waypointx: " + str(each_waypointx))
             rospy.loginfo("each_waypointy: " + str(each_waypointy))
-            cw_position = np.arctan2(two_closest_points[1][1]-two_closest_points[0][1],two_closest_points[1][0]-two_closest_points[0][0])
+            cw_position = np.arctan2(two_closest_points[1][1]-two_closest_points[0][1],two_closest_points[1][0]-two_closest_points[0][0]) + .0001
             rospy.loginfo("cw_position: " + str(cw_position))
             # transform the waypoint
             shift_x = each_waypointx - two_closest_points[0][0]
-            shift_y = each_waypointy - two_closest_points[0][1]
+            shift_y = two_closest_points[0][1] - each_waypointy
             each_waypointx = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position)
             each_waypointy = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
             rospy.loginfo("shift_x: " + str(shift_x))
