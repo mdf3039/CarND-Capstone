@@ -205,7 +205,7 @@ class DBWNode(object):
             # if ((msg[0]-two_closest_points[0][0])*(two_closest_points[1][1]-two_closest_points[0][1])-(msg[1]-two_closest_points[0][1])*(two_closest_points[1][0]-two_closest_points[0][0])) > 0:
             self.cte = abs(np.linalg.norm(np.cross(two_closest_points[0]-two_closest_points[1], two_closest_points[1]-msg))/np.linalg.norm(two_closest_points[0]-two_closest_points[1]))
             rospy.loginfo("The CTE: " + str(self.cte))
-            if each_waypointy<0:
+            if each_waypointy>0:
                 self.cte *= -1
             rospy.loginfo("The CTE: " + str(self.cte))
             kp_cte = .3###07 best is 0.31, .41
@@ -243,14 +243,10 @@ class DBWNode(object):
             elif self.drive_model >= 0:
                 #brake at a rate of current_velocity**2/(2*distance)
                 self.drive_model = self.drive_model
-                
-
-
-            throttle, brake = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
-                                                                                self.current_velocity, self.current_angular_velocity)
-
+            # throttle, brake = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
+            #                                                                     self.current_velocity, self.current_angular_velocity)
             if self.dbw_enabled_bool:
-                self.publish(throttle=0.1, brake=0, steer=steer_value+pid_step_angle+pid_step_cte)
+                self.publish(throttle=0.1, brake=0, steer=-1)#steer_value+pid_step_angle+pid_step_cte)
     
     def traffic_cb(self, msg):
         #choose the model, depending upon the msg
