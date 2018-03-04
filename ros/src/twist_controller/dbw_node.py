@@ -67,6 +67,7 @@ class DBWNode(object):
         self.two_closest_points = None
         self.prev_light_msg = -1
         self.light_msg = -1
+        self.drive_model = -1
         kp = 0.0 # or try these values:
         ki = 0.0 # kp=0.3, ki=0.0, kd=0.57
         kd = 0.0
@@ -239,7 +240,9 @@ class DBWNode(object):
                     #Using this as a constant proportion, accelerating 8m/s would require and extra .15 added to the throttle.
                     #its current throttle can be estimated by proportioning (.1/5.36) it to the current velocity.
                     throttle, brake = self.current_velocity*.1/5.36 + .15, 0
-            elif self.drive_model == 
+            elif self.drive_model >= 0:
+                #brake at a rate of current_velocity**2/(2*distance)
+                
 
 
             throttle, brake = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
