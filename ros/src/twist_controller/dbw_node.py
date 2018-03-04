@@ -127,11 +127,11 @@ class DBWNode(object):
             #the distances from the current position for all waypoints
             wp_distances = ((self.base_waypoints-msg)**2).sum(axis=1)
             #find and append the closest, fourth, and eighth point
-            circle_points = self.base_waypoints[np.argmin(wp_distances)]
+            circle_points = self.base_waypoints[np.argmin(wp_distances)].copy()
             rospy.loginfo("circle_points: " + str(circle_points))
-            circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+4)%len(wp_distances)]))
+            circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+4)%len(wp_distances)].copy()))
             rospy.loginfo("circle_points: " + str(circle_points.shape))
-            circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+8)%len(wp_distances)]))
+            circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+8)%len(wp_distances)].copy()))
             rospy.loginfo("circle_points: " + str(circle_points.shape))
             #use the three points to find the radius of the circle
             eval_matrix = np.vstack((-2*circle_points[:,0],-2*circle_points[:,1],(circle_points**2).sum(axis=1))).T
@@ -162,33 +162,41 @@ class DBWNode(object):
                 steer_value = 0
             #the sign of the steer value depends on the slope from the first to the last point
             two_closest_points = self.base_waypoints[np.sort(wp_distances.argsort()[:2])].copy()
-            self.cte = np.linalg.norm(np.cross(two_closest_points[0]-two_closest_points[1], two_closest_points[1]-msg))/np.linalg.norm(two_closest_points[0]-two_closest_points[1])
             # make sure the waypoints are in the correct order by comparing their distance from the previous midpoint
             # keep the last two midpoints
             if self.prev_midpoint is None:
                 self.two_closest_points = two_closest_points.copy()
-                self.prev_midpoint = np.divide(np.add(two_closest_points[0],two_closest_points[1]),2.0)
+                self.prev_midpoint = np.divide(np.add(two_closest_points[0],two_closest_points[1]),2.0).copy()
             elif np.all(self.prev_midpoint==np.divide(np.add(two_closest_points[0],two_closest_points[1]),2.0)):
                 two_closest_points = self.two_closest_points.copy()
             else:
                 #if the midpoints are not equal, sort by proximity to the previous midpoint
                 rospy.loginfo("Closest points may change: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
                 rospy.loginfo("Closest points may change: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
-                self.two_closest_points = two_closest_points[((two_closest_points-self.prev_midpoint)**2).sum(axis=1).argsort()]
+                self.two_closest_points = two_closest_points[((two_closest_points-self.prev_midpoint)**2).sum(axis=1).argsort()].copy()
                 two_closest_points = self.two_closest_points.copy()
-                self.prev_midpoint = np.divide(np.add(two_closest_points[0],two_closest_points[1]),2.0)
+                self.prev_midpoint = np.divide(np.add(two_closest_points[0],two_closest_points[1]),2.0).copy()
             rospy.loginfo("Closest points: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
             rospy.loginfo("Closest points: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
             # transform the current position with respect to the direction of the two closest points
             each_waypointx = msg[0]
             each_waypointy = msg[1]
+            rospy.loginfo("each_waypointx: " + str(each_waypointx))
+            rospy.loginfo("each_waypointy: " + str(each_waypointy))
             cw_position = np.arctan2(two_closest_points[1][1]-two_closest_points[0][1],two_closest_points[1][0]-two_closest_points[0][0])
+            rospy.loginfo("cw_position: " + str(cw_position))
             # transform the waypoint
             shift_x = each_waypointx - two_closest_points[0][0]
             shift_y = each_waypointy - two_closest_points[0][1]
             each_waypointx = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position)
             each_waypointy = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
+            rospy.loginfo("shift_x: " + str(shift_x))
+            rospy.loginfo("shift_y: " + str(shift_y))
+            rospy.loginfo("each_waypointx: " + str(each_waypointx))
+            rospy.loginfo("each_waypointy: " + str(each_waypointy))
             # if ((msg[0]-two_closest_points[0][0])*(two_closest_points[1][1]-two_closest_points[0][1])-(msg[1]-two_closest_points[0][1])*(two_closest_points[1][0]-two_closest_points[0][0])) > 0:
+            self.cte = abs(np.linalg.norm(np.cross(two_closest_points[0]-two_closest_points[1], two_closest_points[1]-msg))/np.linalg.norm(two_closest_points[0]-two_closest_points[1]))
+            rospy.loginfo("The CTE: " + str(self.cte))
             if each_waypointy<0:
                 self.cte *= -1
             rospy.loginfo("The CTE: " + str(self.cte))
