@@ -31,6 +31,10 @@ MAX_DECELERATION = 5.0
 
 
 class WaypointUpdater(object):
+    
+    ModelStop = 1
+    ModelGo = 2
+    
     def __init__(self):
         rospy.init_node('waypoint_updater')
 
