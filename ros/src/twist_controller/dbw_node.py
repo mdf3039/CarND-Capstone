@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from std_msgs.msg import Bool, Float64
+from std_msgs.msg import Bool, Float64, Int32
 from styx_msgs.msg import Lane
 from dbw_mkz_msgs.msg import ThrottleCmd, SteeringCmd, BrakeCmd, SteeringReport
 from geometry_msgs.msg import TwistStamped, PoseStamped
@@ -50,6 +50,7 @@ class DBWNode(object):
         max_steer_angle = rospy.get_param('~max_steer_angle', 8.)
         
         # TODO: Subscribe to all the topics you need to
+        self.maximum_velocity = self.kmph2mps(rospy.get_param('~velocity')) # change km/h to m/s and subtract 1 to make sure it is always lower
         self.cte = 0
         self.cte_bool = False
         self.prev_sample_time = None
@@ -97,6 +98,9 @@ class DBWNode(object):
         # self.loop()
         rospy.spin()
     
+    def kmph2mps(self, velocity_kmph):
+        return (velocity_kmph * 1000.) / (60. * 60.)
+
     def waypoints_cb(self, waypoints):
         # TODO: Implement
         rospy.loginfo("Oncoming Waypoints are loading")
@@ -223,6 +227,21 @@ class DBWNode(object):
             rospy.loginfo("The steer value: " + str(steer_value))
             rospy.loginfo("The PID CTE: " + str(pid_step_cte))
             rospy.loginfo("The STR: " + str(steer_value+pid_step_angle+pid_step_cte))
+            # the drive model will determine the throttle and brake
+            if self.drive_model==-2:
+                throttle, brake = 0, 0
+                self.drive_model = self.prev_light_msg
+            elif self.drive_model == -1:
+                if self.current_velocity >= self.maximum_velocity:
+                    throttle, brake = 0, 0
+                else:
+                    #accelerate at 8m/s**2. I noticed that at a constant throttle of 0.1, a velocity close to 12mph (5.36m/s) was reached.
+                    #Using this as a constant proportion, accelerating 8m/s would require and extra .15 added to the throttle.
+                    #its current throttle can be estimated by proportioning (.1/5.36) it to the current velocity.
+                    throttle, brake = self.current_velocity*.1/5.36 + .15, 0
+            elif self.drive_model == 
+
+
             throttle, brake = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
                                                                                 self.current_velocity, self.current_angular_velocity)
 
