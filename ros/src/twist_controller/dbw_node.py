@@ -210,10 +210,10 @@ class DBWNode(object):
             self.cte = abs(np.linalg.norm(np.cross(two_closest_points[0]-two_closest_points[1], two_closest_points[1]-msg))/np.linalg.norm(two_closest_points[0]-two_closest_points[1]))
             rospy.loginfo("The CTE: " + str(self.cte))
             #the cross product will determine the direction. if the cross product is positive, the the car is to the left, cte is negative
-            if np.cross(two_closest_points[1]-two_closest_points[0],msg-two_closest_points[0])>0:
+            if np.cross(two_closest_points[0]-self.prev_midpoint,msg-self.prev_midpoint)>0:
                 self.cte *= -1
             rospy.loginfo("The CTE: " + str(self.cte))
-            kp_cte = 0.05###07 best is 0.31, .41
+            kp_cte = 0.2###07 best is 0.31, .41
             ki_cte = 0.0#16#.08 # 1.015
             kd_cte = 0.0#.35 # 0.5
             pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
@@ -240,7 +240,7 @@ class DBWNode(object):
                 rospy.loginfo("The angle_difference: " + str(angle_difference))
                 angle_difference *= 8 / (50.0/180.0*np.pi)
                 rospy.loginfo("The angle_difference value: " + str(angle_difference))
-            kp_angle = 0.1#20.0/(self.current_velocity+10)
+            kp_angle = 0.0#20.0/(self.current_velocity+10)
             ki_angle = 0.0#-.1/(self.current_velocity+20)
             kd_angle = 0.0#.35 # 0.5
             pid_controller_angle = self.pid_controller_angle.step(angle_difference, self.sample_time, kp_angle, ki_angle, kd_angle)
