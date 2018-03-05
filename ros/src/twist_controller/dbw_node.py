@@ -213,7 +213,7 @@ class DBWNode(object):
             if np.cross(two_closest_points[1]-two_closest_points[0],msg-two_closest_points[0])>0:
                 self.cte *= -1
             rospy.loginfo("The CTE: " + str(self.cte))
-            kp_cte = 0.0###07 best is 0.31, .41
+            kp_cte = 0.05###07 best is 0.31, .41
             ki_cte = 0.0#16#.08 # 1.015
             kd_cte = 0.0#.35 # 0.5
             pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
