@@ -213,7 +213,7 @@ class DBWNode(object):
             rospy.loginfo("each_waypointx: " + str(each_waypointx))
             #if np.cross(two_closest_points[0]-self.prev_midpoint,msg-self.prev_midpoint)>0:
             course_midpoint = np.array([1247.634,2067.19])
-            if ((course_midpoint-msg)**2).sum() < ((course_midpoint-self.prev_midpoint)**2).sum()
+            if ((course_midpoint-msg)**2).sum() < ((course_midpoint-self.prev_midpoint)**2).sum():
                 self.cte *= -1
             rospy.loginfo("The CTE: " + str(self.cte))
             kp_cte = 0.2###07 best is 0.31, .41
