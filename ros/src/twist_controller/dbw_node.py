@@ -165,7 +165,7 @@ class DBWNode(object):
                 shift_y = each_waypointy - circle_points[0,1]
                 each_waypointx = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position)
                 each_waypointy = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
-                if each_waypointy>0:
+                if each_waypointy<0:
                     steer_value *= -1
             except:
                 steer_value = 0
@@ -224,7 +224,7 @@ class DBWNode(object):
             rospy.loginfo("The CTE: " + str(self.cte))
             kp_cte = 0.25###07 best is 0.31, .41
             ki_cte = 0.0#16#.08 # 1.015
-            kd_cte = 0.5#.35 # 0.5
+            kd_cte = 0.0#5#.35 # 0.5
             pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
             # The difference in the angle will also affect the steering angle
             # Since the angle is not accurate, use the previous position
