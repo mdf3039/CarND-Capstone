@@ -3,8 +3,8 @@
 
 #### Team Leader:
 - **Michael Floyd**
-        email: 
-        Udacity account: 
+        email: mdf3039@gmail.com
+        Udacity account: https://profiles.udacity.com/p/8349692921 
 
 
 ### Team members:
