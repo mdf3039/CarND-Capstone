@@ -87,7 +87,7 @@ class DBWNode(object):
 
         # TODO: Create `Controller` object
         # The Controller object returns the throttle and brake.
-        self.controller = Controller(self.wheel_base, self.steer_ratio, self.min_speed, max_lat_accel, max_steer_angle, vehicle_mass, wheel_radius)
+        self.controller = Controller(self.wheel_base, self.steer_ratio, self.min_speed, max_lat_accel, max_steer_angle, self.vehicle_mass, self.wheel_radius)
 
         self.steer_pub = rospy.Publisher('/vehicle/steering_cmd',
                                          SteeringCmd, queue_size=1)
