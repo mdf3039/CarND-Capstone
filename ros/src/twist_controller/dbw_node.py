@@ -107,13 +107,13 @@ class DBWNode(object):
 
     def waypoints_cb(self, waypoints):
         # TODO: Implement
-        rospy.loginfo("Oncoming Waypoints are loading")
+        # rospy.loginfo("Oncoming Waypoints are loading")
         self.base_waypoints = []
         for waypoint in waypoints.waypoints:
             # add to the waypoints list
             self.base_waypoints.append([waypoint.pose.pose.position.x, waypoint.pose.pose.position.y])
         self.base_waypoints = np.array(self.base_waypoints)
-        rospy.loginfo("The number of oncoming waypoints are: " + str(self.base_waypoints.shape))
+        # rospy.loginfo("The number of oncoming waypoints are: " + str(self.base_waypoints.shape))
 
     def pose_cb(self, msg):
         if self.base_waypoints is None:
@@ -130,7 +130,7 @@ class DBWNode(object):
         else:
             time = rospy.get_time()
             self.sample_time = time - self.prev_sample_time
-            rospy.loginfo("Delta Time: " + str(self.sample_time))
+            # rospy.loginfo("Delta Time: " + str(self.sample_time))
             self.prev_sample_time = time
         if self.base_waypoints is not None:
             if msg[0]==self.prev_msg[0] and msg[1]==self.prev_msg[1]:
@@ -139,21 +139,21 @@ class DBWNode(object):
             wp_distances = ((self.base_waypoints-msg)**2).sum(axis=1)
             #find and append the closest, fourth, and eighth point
             circle_points = self.base_waypoints[np.argmin(wp_distances)].copy()
-            rospy.loginfo("circle_points: " + str(circle_points))
+            # rospy.loginfo("circle_points: " + str(circle_points))
             circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+4)%len(wp_distances)].copy()))
-            rospy.loginfo("circle_points: " + str(circle_points.shape))
+            # rospy.loginfo("circle_points: " + str(circle_points.shape))
             circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+8)%len(wp_distances)].copy()))
-            rospy.loginfo("circle_points: " + str(circle_points.shape))
+            # rospy.loginfo("circle_points: " + str(circle_points.shape))
             #use the three points to find the radius of the circle
             eval_matrix = np.vstack((-2*circle_points[:,0],-2*circle_points[:,1],(circle_points**2).sum(axis=1))).T
-            rospy.loginfo("eval_matrix: " + str(eval_matrix.shape))
+            # rospy.loginfo("eval_matrix: " + str(eval_matrix.shape))
             #subtract the last entry of the eval matrix from the others and keep the first two rows
             eval_matrix = np.subtract(eval_matrix,eval_matrix[2])[0:2]
             try:
                 x = np.linalg.solve(eval_matrix[:,0:2],eval_matrix[:,2])
-                rospy.loginfo("X obtained: " + str(x))
+                # rospy.loginfo("X obtained: " + str(x))
                 radius = (((msg-x)**2).sum()*1.0)**(1.0/2)
-                rospy.loginfo("Radius: " + str(radius))
+                # rospy.loginfo("Radius: " + str(radius))
                 #convert the angle into degrees then divide by the steering ratio to get the steer value
                 angle = np.arcsin(self.wheel_base/radius) #* (180.0/np.pi)
                 steer_value = angle * self.steer_ratio
@@ -183,86 +183,87 @@ class DBWNode(object):
                 two_closest_points = self.two_closest_points.copy()
             else:
                 #if the midpoints are not equal, sort by proximity to the previous midpoint
-                rospy.loginfo("Closest points may change: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
-                rospy.loginfo("Closest points may change: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
+                # rospy.loginfo("Closest points may change: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
+                # rospy.loginfo("Closest points may change: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
                 self.two_closest_points = two_closest_points[((two_closest_points-self.prev_midpoint)**2).sum(axis=1).argsort()].copy()
                 two_closest_points = self.two_closest_points.copy()
                 self.prev_prev_midpoint = self.prev_midpoint.copy()
                 self.prev_midpoint = np.divide(np.add(two_closest_points[0],two_closest_points[1]),2.0).copy()
-            rospy.loginfo("Closest points: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
-            rospy.loginfo("Closest points: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
+            # rospy.loginfo("Closest points: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
+            # rospy.loginfo("Closest points: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
             # transform the current position with respect to the direction of the two closest points
             each_waypointx = msg[0]
             each_waypointy = msg[1]
-            rospy.loginfo("each_waypointx: " + str(each_waypointx))
-            rospy.loginfo("each_waypointy: " + str(each_waypointy))
+            # rospy.loginfo("each_waypointx: " + str(each_waypointx))
+            # rospy.loginfo("each_waypointy: " + str(each_waypointy))
             cw_position = np.arctan2(two_closest_points[1][1]-two_closest_points[0][1],two_closest_points[1][0]-two_closest_points[0][0])
             if (cw_position<=np.pi and cw_position>=np.pi/2.0):
                 cw_position -= np.pi
             elif (cw_position>=-1.0*np.pi and cw_position<=-1.0*np.pi/2.0):
                 cw_position += np.pi
-            rospy.loginfo("cw_position: " + str(cw_position))
+            # rospy.loginfo("cw_position: " + str(cw_position))
             # transform the waypoint
             shift_x = each_waypointx - two_closest_points[0][0]
             shift_y = each_waypointy - two_closest_points[0][1]
             each_waypointx = shift_x * math.cos(cw_position) + shift_y * math.sin(cw_position)
             each_waypointy = -1 * shift_x * math.sin(cw_position) + shift_y * math.cos(cw_position)
-            rospy.loginfo("shift_x: " + str(shift_x))
-            rospy.loginfo("shift_y: " + str(shift_y))
-            rospy.loginfo("each_waypointx: " + str(each_waypointx))
-            rospy.loginfo("each_waypointy: " + str(each_waypointy))
+            # rospy.loginfo("shift_x: " + str(shift_x))
+            # rospy.loginfo("shift_y: " + str(shift_y))
+            # rospy.loginfo("each_waypointx: " + str(each_waypointx))
+            # rospy.loginfo("each_waypointy: " + str(each_waypointy))
             # if ((msg[0]-two_closest_points[0][0])*(two_closest_points[1][1]-two_closest_points[0][1])-(msg[1]-two_closest_points[0][1])*(two_closest_points[1][0]-two_closest_points[0][0])) > 0:
             self.cte = abs(np.linalg.norm(np.cross(two_closest_points[0]-two_closest_points[1], two_closest_points[1]-msg))/np.linalg.norm(two_closest_points[0]-two_closest_points[1]))
             rospy.loginfo("The CTE: " + str(self.cte))
             #the cross product will determine the direction. if the cross product is positive, the the car is to the left, cte is negative
-            rospy.loginfo("two_closest_points[0]-self.prev_midpoint: " + str(two_closest_points[0]-self.prev_prev_midpoint))
-            rospy.loginfo("msg-self.prev_midpoint: " + str(msg-self.prev_prev_midpoint))
-            rospy.loginfo("self.prev_midpoint: " + str(self.prev_prev_midpoint))
+            rospy.loginfo("two_closest_points[0]-self.prev_prev_midpoint: " + str(two_closest_points[0]-self.prev_prev_midpoint))
+            rospy.loginfo("msg-self.prev_prev_midpoint: " + str(msg-self.prev_prev_midpoint))
+            rospy.loginfo("self.prev_prev_midpoint: " + str(self.prev_prev_midpoint))
             rospy.loginfo("np.cross: " + str(np.cross(two_closest_points[0]-self.prev_prev_midpoint,msg-self.prev_prev_midpoint)))
-            course_midpoint = np.array([1247.634,2067.19])
+            # course_midpoint = np.array([1247.634,2067.19])
             if (np.cross(two_closest_points[0]-self.prev_prev_midpoint,msg-self.prev_prev_midpoint)<0):# or ((course_midpoint-msg)**2).sum() < ((course_midpoint-self.prev_midpoint)**2).sum()):
                 self.cte *= -1
             # if ((course_midpoint-msg)**2).sum() < ((course_midpoint-self.prev_midpoint)**2).sum():
             rospy.loginfo("The CTE: " + str(self.cte))
-            if abs(self.cte)>abs(self.prev_cte):
-                self.cte_sign *= -1
-            self.cte *= self.cte_sign
-            self.prev_cte = self.cte
+            # if abs(self.cte)>abs(self.prev_cte):
+            #     self.cte_sign *= -1
+            # self.cte *= self.cte_sign
+            # self.prev_cte = self.cte
             kp_cte = 0.25###07 best is 0.31, .41
             ki_cte = 0.0#16#.08 # 1.015
             kd_cte = 0.0#5#.35 # 0.5
             pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
             # The difference in the angle will also affect the steering angle
             # Since the angle is not accurate, use the previous position
-            if np.sum(self.prev_msg)<0:
-                angle_difference = 0
-            else:
-                angle_r = np.arctan2(two_closest_points[1][1]-two_closest_points[0][1],two_closest_points[1][0]-two_closest_points[0][0])
-                rospy.loginfo("The angle_r: " + str(angle_r))
-                if (angle_r<=np.pi and angle_r>=np.pi/2.0):
-                    angle_r -= np.pi
-                elif (angle_r>=-1.0*np.pi and angle_r<=-1.0*np.pi/2.0):
-                    angle_r += np.pi
-                rospy.loginfo("The angle_r value: " + str(angle_r))
-                angle_c = np.arctan2(msg[1]-self.prev_msg[1],msg[0]-self.prev_msg[0])
-                rospy.loginfo("The angle_c: " + str(angle_c))
-                if (angle_c<=np.pi and angle_c>=np.pi/2.0):
-                    angle_c -= np.pi
-                elif (angle_c>=-1.0*np.pi and angle_c<=-1.0*np.pi/2.0):
-                    angle_c += np.pi
-                rospy.loginfo("The angle_c value: " + str(angle_c))
-                angle_difference = angle_r - angle_c
-                rospy.loginfo("The angle_difference: " + str(angle_difference))
-                angle_difference *= 8 / (50.0/180.0*np.pi)
-                rospy.loginfo("The angle_difference value: " + str(angle_difference))
-            kp_angle = 0.0#20.0/(self.current_velocity+10)
-            ki_angle = 0.0#-.1/(self.current_velocity+20)
-            kd_angle = 0.0#.35 # 0.5
-            pid_controller_angle = self.pid_controller_angle.step(angle_difference, self.sample_time, kp_angle, ki_angle, kd_angle)
-            pid_step_angle = max(min(self.pid_controller_angle.step(angle_difference, self.sample_time, kp_angle, ki_angle, kd_angle), 8), -8)
+            # if np.sum(self.prev_msg)<0:
+            #     angle_difference = 0
+            # else:
+            #     angle_r = np.arctan2(two_closest_points[1][1]-two_closest_points[0][1],two_closest_points[1][0]-two_closest_points[0][0])
+            #     rospy.loginfo("The angle_r: " + str(angle_r))
+            #     if (angle_r<=np.pi and angle_r>=np.pi/2.0):
+            #         angle_r -= np.pi
+            #     elif (angle_r>=-1.0*np.pi and angle_r<=-1.0*np.pi/2.0):
+            #         angle_r += np.pi
+            #     rospy.loginfo("The angle_r value: " + str(angle_r))
+            #     angle_c = np.arctan2(msg[1]-self.prev_msg[1],msg[0]-self.prev_msg[0])
+            #     rospy.loginfo("The angle_c: " + str(angle_c))
+            #     if (angle_c<=np.pi and angle_c>=np.pi/2.0):
+            #         angle_c -= np.pi
+            #     elif (angle_c>=-1.0*np.pi and angle_c<=-1.0*np.pi/2.0):
+            #         angle_c += np.pi
+            #     rospy.loginfo("The angle_c value: " + str(angle_c))
+            #     angle_difference = angle_r - angle_c
+            #     rospy.loginfo("The angle_difference: " + str(angle_difference))
+            #     angle_difference *= 8 / (50.0/180.0*np.pi)
+            #     rospy.loginfo("The angle_difference value: " + str(angle_difference))
+            # kp_angle = 0.0#20.0/(self.current_velocity+10)
+            # ki_angle = 0.0#-.1/(self.current_velocity+20)
+            # kd_angle = 0.0#.35 # 0.5
+            # pid_controller_angle = self.pid_controller_angle.step(angle_difference, self.sample_time, kp_angle, ki_angle, kd_angle)
+            # pid_step_angle = max(min(self.pid_controller_angle.step(angle_difference, self.sample_time, kp_angle, ki_angle, kd_angle), 8), -8)
+            pid_step_angle = 0
             self.prev_msg = msg
             rospy.loginfo("The steer value: " + str(steer_value))
-            rospy.loginfo("The PID CTE: " + str(pid_step_angle))
+            rospy.loginfo("The PID CTE: " + str(pid_step_cte))
             rospy.loginfo("The STR: " + str(steer_value+pid_step_angle+pid_step_cte))
             # the drive model will determine the throttle and brake
             if self.drive_model==-2:
@@ -275,7 +276,7 @@ class DBWNode(object):
                     #accelerate at 8m/s**2. I noticed that at a constant throttle of 0.1, a velocity close to 12mph (5.36m/s) was reached.
                     #Using this as a constant proportion, accelerating 8m/s would require and extra .15 added to the throttle.
                     #its current throttle can be estimated by proportioning (.1/5.36) it to the current velocity.
-                    throttle, brake = self.current_velocity*.1/5.36 + .15, 0
+                    throttle, brake = min(.42,self.current_velocity*.1/5.36 + .15), 0
             elif self.drive_model >= 0:
                 #brake at a deceleration rate of current_velocity**2/(2*distance)
                 wp_2_pos = ((msg-self.base_waypoints[self.drive_model])**2).sum()
