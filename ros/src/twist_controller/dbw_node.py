@@ -219,13 +219,18 @@ class DBWNode(object):
                 angle_difference = 0
             else:
                 angle_r = np.arctan2(two_closest_points[0][1]-two_closest_points[1][1],two_closest_points[0][0]-two_closest_points[1][0])
-                if angle_r>np.pi:
+                rospy.loginfo("The angle_r: " + str(angle_r
                     angle_r-=2*np.pi
+                rospy.loginfo("The angle_r value: " + str(angle_r))
                 angle_c = np.arctan2(msg[1]-self.prev_msg[1],msg[0]-self.prev_msg[0])
+                rospy.loginfo("The angle_c: " + str(angle_c))
                 if angle_c>np.pi:
                     angle_c-=2*np.pi
+                rospy.loginfo("The angle_c value: " + str(angle_c))
                 angle_difference = angle_r - angle_c
+                rospy.loginfo("The angle_difference: " + str(angle_difference))
                 angle_difference *= 8 / (50.0/180.0*np.pi)
+                rospy.loginfo("The angle_difference value: " + str(angle_difference))
             kp_angle = -0.05#20.0/(self.current_velocity+10)
             ki_angle = 0.0#-.1/(self.current_velocity+20)
             kd_angle = 0.0#.35 # 0.5
@@ -233,7 +238,7 @@ class DBWNode(object):
             pid_step_angle = max(min(self.pid_controller_angle.step(angle_difference, self.sample_time, kp_angle, ki_angle, kd_angle), 8), -8)
             self.prev_msg = msg
             rospy.loginfo("The steer value: " + str(steer_value))
-            rospy.loginfo("The PID CTE: " + str(pid_step_cte))
+            rospy.loginfo("The PID CTE: " + str(pid_step_angle))
             rospy.loginfo("The STR: " + str(steer_value+pid_step_angle+pid_step_cte))
             # the drive model will determine the throttle and brake
             if self.drive_model==-2:
