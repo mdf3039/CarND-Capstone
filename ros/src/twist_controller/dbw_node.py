@@ -226,7 +226,7 @@ class DBWNode(object):
                     angle_c-=2*np.pi
                 angle_difference = angle_r - angle_c
                 angle_difference *= 8 / (50.0/180.0*np.pi)
-            kp_angle = 0.05#20.0/(self.current_velocity+10)
+            kp_angle = -0.05#20.0/(self.current_velocity+10)
             ki_angle = 0.0#-.1/(self.current_velocity+20)
             kd_angle = 0.0#.35 # 0.5
             pid_controller_angle = self.pid_controller_angle.step(angle_difference, self.sample_time, kp_angle, ki_angle, kd_angle)
