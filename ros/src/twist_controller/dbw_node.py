@@ -211,10 +211,10 @@ class DBWNode(object):
             rospy.loginfo("The CTE: " + str(self.cte))
             #the cross product will determine the direction. if the cross product is positive, the the car is to the left, cte is negative
             rospy.loginfo("each_waypointx: " + str(each_waypointx))
-            #if np.cross(two_closest_points[0]-self.prev_midpoint,msg-self.prev_midpoint)>0:
-            course_midpoint = np.array([1247.634,2067.19])
-            if ((course_midpoint-msg)**2).sum() < ((course_midpoint-self.prev_midpoint)**2).sum():
+            if (np.cross(two_closest_points[0]-self.prev_midpoint,msg-self.prev_midpoint)>0) or (((course_midpoint-msg)**2).sum() < ((course_midpoint-self.prev_midpoint)**2).sum()):
                 self.cte *= -1
+            # course_midpoint = np.array([1247.634,2067.19])
+            # if ((course_midpoint-msg)**2).sum() < ((course_midpoint-self.prev_midpoint)**2).sum():
             rospy.loginfo("The CTE: " + str(self.cte))
             kp_cte = 0.2###07 best is 0.31, .41
             ki_cte = 0.0#16#.08 # 1.015
