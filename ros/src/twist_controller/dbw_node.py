@@ -64,6 +64,7 @@ class DBWNode(object):
         self.prev_position = None
         self.prev_msg = np.array([-1 , -1])
         self.prev_midpoint = None
+        self.prev_prev_midpoint = None
         self.two_closest_points = None
         self.prev_light_msg = -1
         self.light_msg = -1
@@ -175,6 +176,7 @@ class DBWNode(object):
             if self.prev_midpoint is None:
                 self.two_closest_points = two_closest_points.copy()
                 self.prev_midpoint = np.divide(np.add(two_closest_points[0],two_closest_points[1]),2.0).copy()
+                self.prev_prev_midpoint = self.prev_midpoint.copy()
             elif np.all(self.prev_midpoint==np.divide(np.add(two_closest_points[0],two_closest_points[1]),2.0)):
                 two_closest_points = self.two_closest_points.copy()
             else:
@@ -183,6 +185,7 @@ class DBWNode(object):
                 rospy.loginfo("Closest points may change: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
                 self.two_closest_points = two_closest_points[((two_closest_points-self.prev_midpoint)**2).sum(axis=1).argsort()].copy()
                 two_closest_points = self.two_closest_points.copy()
+                self.prev_prev_midpoint = self.prev_midpoint.copy()
                 self.prev_midpoint = np.divide(np.add(two_closest_points[0],two_closest_points[1]),2.0).copy()
             rospy.loginfo("Closest points: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
             rospy.loginfo("Closest points: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
@@ -215,7 +218,7 @@ class DBWNode(object):
             rospy.loginfo("self.prev_midpoint: " + str(self.prev_midpoint))
             rospy.loginfo("np.cross: " + str(np.cross(two_closest_points[0]-self.prev_midpoint,msg-self.prev_midpoint)))
             course_midpoint = np.array([1247.634,2067.19])
-            if (np.cross(two_closest_points[1]-self.prev_midpoint,msg-self.prev_midpoint)>0):# or ((course_midpoint-msg)**2).sum() < ((course_midpoint-self.prev_midpoint)**2).sum()):
+            if (np.cross(two_closest_points[0]-self.prev_prev_midpoint,msg-self.prev_prev_midpoint)>0):# or ((course_midpoint-msg)**2).sum() < ((course_midpoint-self.prev_midpoint)**2).sum()):
                 self.cte *= -1
             # if ((course_midpoint-msg)**2).sum() < ((course_midpoint-self.prev_midpoint)**2).sum():
             rospy.loginfo("The CTE: " + str(self.cte))
