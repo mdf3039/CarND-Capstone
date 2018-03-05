@@ -218,7 +218,13 @@ class DBWNode(object):
             if np.sum(self.prev_msg)<0:
                 angle_difference = 0
             else:
-                angle_difference = np.arctan2(two_closest_points[0][1]-two_closest_points[1][1],two_closest_points[0][0]-two_closest_points[1][0]) - np.arctan2(msg[1]-self.prev_msg[1],msg[0]-self.prev_msg[0])
+                angle_r = np.arctan2(two_closest_points[0][1]-two_closest_points[1][1],two_closest_points[0][0]-two_closest_points[1][0])
+                if angle_r>np.pi:
+                    angle_r-=2*np.pi
+                angle_c = np.arctan2(msg[1]-self.prev_msg[1],msg[0]-self.prev_msg[0])
+                if angle_c>np.pi:
+                    angle_c-=2*np.pi
+                angle_difference = angle_r - angle_c
                 angle_difference *= 8 / (50.0/180.0*np.pi)
             kp_angle = 0.05#20.0/(self.current_velocity+10)
             ki_angle = 0.0#-.1/(self.current_velocity+20)
