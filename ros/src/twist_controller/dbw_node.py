@@ -278,6 +278,7 @@ class DBWNode(object):
             # throttle, brake = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
             #                                                                     self.current_velocity, self.current_angular_velocity)
             if self.dbw_enabled_bool:
+                rospy.loginfo("The steer: " + str(steer_value+pid_step_angle+pid_step_cte))
                 self.publish(throttle=throttle, brake=brake, steer=steer_value+pid_step_angle+pid_step_cte)
     
     def traffic_cb(self, msg):
