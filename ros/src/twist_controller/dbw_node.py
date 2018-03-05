@@ -192,6 +192,10 @@ class DBWNode(object):
             rospy.loginfo("each_waypointx: " + str(each_waypointx))
             rospy.loginfo("each_waypointy: " + str(each_waypointy))
             cw_position = np.arctan2(two_closest_points[1][1]-two_closest_points[0][1],two_closest_points[1][0]-two_closest_points[0][0])
+            if (cw_position<=np.pi and cw_position>=np.pi/2.0):
+                cw_position -= np.pi
+            elif (cw_position>=-1.0*np.pi and cw_position<=-1.0*np.pi/2.0):
+                cw_position += np.pi
             rospy.loginfo("cw_position: " + str(cw_position))
             # transform the waypoint
             shift_x = each_waypointx - two_closest_points[0][0]
@@ -218,25 +222,25 @@ class DBWNode(object):
             if np.sum(self.prev_msg)<0:
                 angle_difference = 0
             else:
-                angle_r = np.arctan2(two_closest_points[0][1]-two_closest_points[1][1],two_closest_points[0][0]-two_closest_points[1][0])
+                angle_r = np.arctan2(two_closest_points[1][1]-two_closest_points[0][1],two_closest_points[1][0]-two_closest_points[0][0])
                 rospy.loginfo("The angle_r: " + str(angle_r))
-                if (angle_r>=np.pi and angle_r<=3.0*np.pi/2.0) or (angle_r<=np.pi and angle_r>np.pi/2):
-                    angle_r-=np.pi
-                elif angle_r>=3.0*np.pi/2.0:
-                    angle_r-=2.0*np.pi
+                if (angle_r<=np.pi and angle_r>=np.pi/2.0):
+                    angle_r -= np.pi
+                elif (angle_r>=-1.0*np.pi and angle_r<=-1.0*np.pi/2.0):
+                    angle_r += np.pi
                 rospy.loginfo("The angle_r value: " + str(angle_r))
                 angle_c = np.arctan2(msg[1]-self.prev_msg[1],msg[0]-self.prev_msg[0])
                 rospy.loginfo("The angle_c: " + str(angle_c))
-                if (angle_c>=np.pi and angle_c<=3.0*np.pi/2.0) or (angle_c<=np.pi and angle_c>np.pi/2):
-                    angle_c-=np.pi
-                elif angle_c>=3.0*np.pi/2.0:
-                    angle_c-=2.0*np.pi
+                if (angle_c<=np.pi and angle_c>=np.pi/2.0):
+                    angle_c -= np.pi
+                elif (angle_c>=-1.0*np.pi and angle_c<=-1.0*np.pi/2.0):
+                    angle_c += np.pi
                 rospy.loginfo("The angle_c value: " + str(angle_c))
                 angle_difference = angle_r - angle_c
                 rospy.loginfo("The angle_difference: " + str(angle_difference))
                 angle_difference *= 8 / (50.0/180.0*np.pi)
                 rospy.loginfo("The angle_difference value: " + str(angle_difference))
-            kp_angle = -0.05#20.0/(self.current_velocity+10)
+            kp_angle = 0.05#20.0/(self.current_velocity+10)
             ki_angle = 0.0#-.1/(self.current_velocity+20)
             kd_angle = 0.0#.35 # 0.5
             pid_controller_angle = self.pid_controller_angle.step(angle_difference, self.sample_time, kp_angle, ki_angle, kd_angle)
