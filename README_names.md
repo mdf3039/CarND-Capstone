@@ -8,17 +8,19 @@
 
 
 ### Team members:
+
+- **Andreas Nilsson**
+        email: 
+        Udacity account:
+        
+- **Darshanand Khusial**
+        email: 
+        Udacity account:         
+
 - **Farida Hamid**
         email: faridaaddala@gmail.com
         Udacity account: https://profiles.udacity.com/p/2466578619
         
-- ** name **
+- **Matthias Bartelmeß**
         email: 
         Udacity account: 
-- ** name **
-        email: 
-        Udacity account: 
-- ** name **
-        email: 
-        Udacity account: 
-
