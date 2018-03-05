@@ -38,12 +38,12 @@ class DBWNode(object):
     def __init__(self):
         rospy.init_node('dbw_node')
 
-        vehicle_mass = rospy.get_param('~vehicle_mass', 1736.35)
+        self.vehicle_mass = rospy.get_param('~vehicle_mass', 1736.35)
         fuel_capacity = rospy.get_param('~fuel_capacity', 13.5)
         brake_deadband = rospy.get_param('~brake_deadband', .1)
         decel_limit = rospy.get_param('~decel_limit', -5)
         accel_limit = rospy.get_param('~accel_limit', 1.)
-        wheel_radius = rospy.get_param('~wheel_radius', 0.2413)
+        self.wheel_radius = rospy.get_param('~wheel_radius', 0.2413)
         self.wheel_base = rospy.get_param('~wheel_base', 2.8498)
         self.steer_ratio = rospy.get_param('~steer_ratio', 14.8)
         max_lat_accel = rospy.get_param('~max_lat_accel', 3.)
@@ -210,6 +210,7 @@ class DBWNode(object):
             self.cte = abs(np.linalg.norm(np.cross(two_closest_points[0]-two_closest_points[1], two_closest_points[1]-msg))/np.linalg.norm(two_closest_points[0]-two_closest_points[1]))
             rospy.loginfo("The CTE: " + str(self.cte))
             #the cross product will determine the direction. if the cross product is positive, the the car is to the left, cte is negative
+            rospy.loginfo("each_waypointx: " + str(each_waypointx))
             if np.cross(two_closest_points[0]-self.prev_midpoint,msg-self.prev_midpoint)>0:
                 self.cte *= -1
             rospy.loginfo("The CTE: " + str(self.cte))
@@ -262,14 +263,14 @@ class DBWNode(object):
                     #its current throttle can be estimated by proportioning (.1/5.36) it to the current velocity.
                     throttle, brake = self.current_velocity*.1/5.36 + .15, 0
             elif self.drive_model >= 0:
-                #brake at a rate of current_velocity**2/(2*distance)
+                #brake at a deceleration rate of current_velocity**2/(2*distance)
                 wp_2_pos = ((msg-self.base_waypoints[self.drive_model])**2).sum()
                 brake_rate = self.current_velocity**2/(2*wp_2_pos)
-
+                throttle, brake = 0, self.vehicle_mass*brake_rate*self.wheel_radius
             # throttle, brake = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
             #                                                                     self.current_velocity, self.current_angular_velocity)
             if self.dbw_enabled_bool:
-                self.publish(throttle=0.1, brake=0, steer=steer_value+pid_step_angle+pid_step_cte)
+                self.publish(throttle=throttle, brake=brake, steer=steer_value+pid_step_angle+pid_step_cte)
     
     def traffic_cb(self, msg):
         #choose the model, depending upon the msg
