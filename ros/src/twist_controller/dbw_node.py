@@ -219,7 +219,7 @@ class DBWNode(object):
                 angle_difference = 0
             else:
                 angle_r = np.arctan2(two_closest_points[0][1]-two_closest_points[1][1],two_closest_points[0][0]-two_closest_points[1][0])
-                rospy.loginfo("The angle_r: " + str(angle_r
+                rospy.loginfo("The angle_r: " + str(angle_r))
                     angle_r-=2*np.pi
                 rospy.loginfo("The angle_r value: " + str(angle_r))
                 angle_c = np.arctan2(msg[1]-self.prev_msg[1],msg[0]-self.prev_msg[0])
