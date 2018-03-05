@@ -69,6 +69,8 @@ class DBWNode(object):
         self.prev_light_msg = -1
         self.light_msg = -1
         self.drive_model = -1
+        self.prev_cte = 0
+        self.cte_sign = 1
         kp = 0.0 # or try these values:
         ki = 0.0 # kp=0.3, ki=0.0, kd=0.57
         kd = 0.0
@@ -218,10 +220,14 @@ class DBWNode(object):
             rospy.loginfo("self.prev_midpoint: " + str(self.prev_prev_midpoint))
             rospy.loginfo("np.cross: " + str(np.cross(two_closest_points[0]-self.prev_prev_midpoint,msg-self.prev_prev_midpoint)))
             course_midpoint = np.array([1247.634,2067.19])
-            if (np.cross(two_closest_points[0]-self.prev_prev_midpoint,msg-self.prev_prev_midpoint)>0):# or ((course_midpoint-msg)**2).sum() < ((course_midpoint-self.prev_midpoint)**2).sum()):
+            if (np.cross(two_closest_points[0]-self.prev_prev_midpoint,msg-self.prev_prev_midpoint)<0):# or ((course_midpoint-msg)**2).sum() < ((course_midpoint-self.prev_midpoint)**2).sum()):
                 self.cte *= -1
             # if ((course_midpoint-msg)**2).sum() < ((course_midpoint-self.prev_midpoint)**2).sum():
             rospy.loginfo("The CTE: " + str(self.cte))
+            if abs(self.cte)>abs(self.prev_cte):
+                self.cte_sign *= -1
+            self.cte *= self.cte_sign
+            self.prev_cte = self.cte
             kp_cte = 0.25###07 best is 0.31, .41
             ki_cte = 0.0#16#.08 # 1.015
             kd_cte = 0.0#5#.35 # 0.5
