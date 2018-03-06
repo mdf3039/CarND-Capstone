@@ -90,7 +90,7 @@ class WaypointUpdater(object):
         self.two_closest_waypoints = np.empty((0,3), float)
         # If the Base Waypoints have not been uploaded yet, do not start
         if self.base_waypoints is None:
-            rospy.loginfo("THE BASE WAYPOINTS ARE NOT THERE")
+            # rospy.loginfo("THE BASE WAYPOINTS ARE NOT THERE")
             return
         rospy.loginfo("THE BASE WAYPOINTS ARE FOUND")
         for each_waypoint in self.base_waypoints:
@@ -115,10 +115,10 @@ class WaypointUpdater(object):
                 #self.transformed_xy.append([each_waypointx,each_waypointy])
             #for the cross track error, keep the two waypoints that are closest to the current position
             #record the distance, x, and y for the waypoints
-            self.two_closest_waypoints = np.append(self.two_closest_waypoints, np.array([[waypoint_distance,each_waypointx,each_waypointy]]), axis=0)
-            self.two_closest_waypoints = self.two_closest_waypoints[self.two_closest_waypoints[:,0].argsort()[:2]]
+            # self.two_closest_waypoints = np.append(self.two_closest_waypoints, np.array([[waypoint_distance,each_waypointx,each_waypointy]]), axis=0)
+            # self.two_closest_waypoints = self.two_closest_waypoints[self.two_closest_waypoints[:,0].argsort()[:2]]
         #Find the distance from the line segment of the two closest points and the current position(0,0)
-        self.cross_track_error = self.two_closest_waypoints[0,2] - self.two_closest_waypoints[0,1]*(self.two_closest_waypoints[0,2]-self.two_closest_waypoints[1,2])/(self.two_closest_waypoints[0,1]-self.two_closest_waypoints[1,1])
+        # self.cross_track_error = self.two_closest_waypoints[0,2] - self.two_closest_waypoints[0,1]*(self.two_closest_waypoints[0,2]-self.two_closest_waypoints[1,2])/(self.two_closest_waypoints[0,1]-self.two_closest_waypoints[1,1])
         #fit the polynomial
         #self.transformed_xy = np.array(self.transformed_xy)
         #poly_output = np.poly1d(np.polyfit(self.transformed_xy[:,0].tolist(), self.transformed_xy[:,1].tolist(), 3))
