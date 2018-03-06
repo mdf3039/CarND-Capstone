@@ -56,13 +56,20 @@ class WaypointUpdater(object):
 
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
         self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
-        self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+        self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb_function)
 
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
         self.traffic_waypoint = rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
 
-        rospy.spin()
+        self.loop()
         # TODO: Add other member variables you need below
+
+        
+    def loop(self):
+        rate = rospy.Rate(1) # 1Hz
+        while not rospy.is_shutdown():
+            self.pose_cb(self.c_position)
+            rate.sleep()
 
     def kmph2mps(self, velocity_kmph):
         return (velocity_kmph * 1000.) / (60. * 60.)
@@ -73,6 +80,9 @@ class WaypointUpdater(object):
         #obtain current_angular_velocity for controller
         self.current_angular_velocity = (msg.twist.angular.x**2 + msg.twist.angular.y**2 + msg.twist.angular.z**2 * 1.0)**(1.0/2)
         # pass
+    
+    def pose_cb_function(self, msg):
+        self.c_position = msg
 
     def pose_cb(self, msg):
         # TODO: Implement
