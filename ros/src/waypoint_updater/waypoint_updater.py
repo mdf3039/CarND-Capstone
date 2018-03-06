@@ -50,6 +50,7 @@ class WaypointUpdater(object):
         self.oncoming_waypoints_distance = []
         self.transformed_xy = []
         self.oncoming_waypoints = None
+        self.c_position = None
 
         self.final_waypoints_pub = rospy.Publisher('/final_waypoints', Lane, queue_size=1)
         self.cte_pub = rospy.Publisher('/cross_track_error',Float64, queue_size=1)
@@ -64,7 +65,7 @@ class WaypointUpdater(object):
         self.loop()
         # TODO: Add other member variables you need below
 
-        
+
     def loop(self):
         rate = rospy.Rate(1) # 1Hz
         while not rospy.is_shutdown():
@@ -85,6 +86,8 @@ class WaypointUpdater(object):
         self.c_position = msg
 
     def pose_cb(self, msg):
+        if msg is None:
+            return
         # TODO: Implement
         # Using the data from the current position, provide waypoints ahead
         # create variables obtaining the placement of the vehicle
