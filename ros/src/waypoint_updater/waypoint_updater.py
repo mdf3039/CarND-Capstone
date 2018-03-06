@@ -134,8 +134,8 @@ class WaypointUpdater(object):
             #Also change the speed to the max_velocity
             self.final_waypoints.waypoints[-1].twist.twist.linear.x = 8#self.maximum_velocity
         self.final_waypoints_pub.publish(self.final_waypoints)
-        rospy.loginfo("The CTE in wpt_updtr: " + str(self.cross_track_error))
-        self.cte_pub.publish(self.cross_track_error)
+        # rospy.loginfo("The CTE in wpt_updtr: " + str(self.cross_track_error))
+        # self.cte_pub.publish(self.cross_track_error)
 
     def waypoints_cb(self, waypoints):
         # TODO: Implement
