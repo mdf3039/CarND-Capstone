@@ -34,12 +34,13 @@ class TLDetector(object):
         self.current_pose = None
         self.base_waypoints = None
         self.lights = []
+        self.c_image = None
 
         self.stopping_waypoint_index = -1
         self.stopping_waypoint_distance = 1000
 
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
-        self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+        self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb_function)
         self.vehicle_traffic_lights_sub = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
         self.current_velocity = 0
         self.current_angular_velocity = 0
@@ -52,7 +53,7 @@ class TLDetector(object):
         simulator. When testing on the vehicle, the color state will not be available. You'll need to
         rely on the position of the light and the camera image to predict it.
         '''
-        sub6_sub = rospy.Subscriber('/image_color', Image, self.image_cb)
+        sub6_sub = rospy.Subscriber('/image_color', Image, self.image_cb_function)
 
 
 
@@ -73,7 +74,13 @@ class TLDetector(object):
         self.Red_Light = 0
         
 
-        rospy.spin()
+        self.loop() # rospy.spin()
+
+    def loop(self):
+        rate = rospy.Rate(1) # 1Hz
+        while not rospy.is_shutdown():
+            self.image_cb(self.c_image)
+            rate.sleep()
 
     def kmph2mps(self, velocity_kmph):
         return (velocity_kmph * 1000.) / (60. * 60.)
@@ -83,7 +90,7 @@ class TLDetector(object):
         self.current_velocity = (msg.twist.linear.x**2 + msg.twist.linear.y**2 + msg.twist.linear.z**2 * 1.0)**(1.0/2)
         #obtain current_angular_velocity for controller
         self.current_angular_velocity = (msg.twist.angular.x**2 + msg.twist.angular.y**2 + msg.twist.angular.z**2 * 1.0)**(1.0/2)
-        pass
+        pass    
 
     def pose_cb(self, msg):
         #given the current position, find the closest traffic light stop line
@@ -146,7 +153,12 @@ class TLDetector(object):
     def traffic_cb(self, msg):
         self.vehicle_traffic_lights = msg
 
+    def image_cb_function(self, msg):
+        self.c_image = msg
+
     def image_cb(self, msg):
+        if msg is None:
+            return
         """Identifies red lights in the incoming camera image and publishes the index
             of the waypoint closest to the red light's stop line to /traffic_waypoint
 

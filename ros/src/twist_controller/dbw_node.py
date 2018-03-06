@@ -74,6 +74,7 @@ class DBWNode(object):
         kp = 0.0 # or try these values:
         ki = 0.0 # kp=0.3, ki=0.0, kd=0.57
         kd = 0.0
+        self.c_position = None
         self.pid_controller_cte = PID(kp, ki, kd)
         self.pid_controller_angle = PID(kp, ki, kd)
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
@@ -82,7 +83,7 @@ class DBWNode(object):
         #self.twist_cmd_sub = rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_function)
         self.dbw_enabled_bool = False
         self.dbw_enabled_sub = rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_function)
-        self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+        self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb_function)
         self.traffic_waypoint = rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
 
         # obtain min_speed for the yaw controller by adding the deceleration times time to the current velocity
@@ -99,8 +100,13 @@ class DBWNode(object):
         self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
                                          BrakeCmd, queue_size=1)
 
-        # self.loop()
-        rospy.spin()
+        self.loop() # rospy.spin()
+
+    def loop(self):
+        rate = rospy.Rate(2) # 1Hz
+        while not rospy.is_shutdown():
+            self.pose_cb(self.c_position)
+            rate.sleep()
     
     def kmph2mps(self, velocity_kmph):
         return (velocity_kmph * 1000.) / (60. * 60.)
@@ -115,7 +121,12 @@ class DBWNode(object):
         self.base_waypoints = np.array(self.base_waypoints)
         # rospy.loginfo("The number of oncoming waypoints are: " + str(self.base_waypoints.shape))
 
+    def pose_cb_function(self, msg):
+        self.c_position = msg
+
     def pose_cb(self, msg):
+        if msg is None:
+            return
         if self.base_waypoints is None:
             return
         rospy.loginfo("Position is updated: " + str(msg.pose.position.x) + "," + str(msg.pose.position.y))
@@ -230,7 +241,7 @@ class DBWNode(object):
             #     self.cte_sign *= -1
             # self.cte *= self.cte_sign
             # self.prev_cte = self.cte
-            kp_cte = 0.25 - .15*self.current_velocity/self.maximum_velocity###07 best is 0.31, .41
+            kp_cte = 0.05# - .15*self.current_velocity/self.maximum_velocity###07 best is 0.31, .41
             ki_cte = 0.0#16#.08 # 1.015
             kd_cte = 0.0#5#.35 # 0.5
             pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
