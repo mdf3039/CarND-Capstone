@@ -40,7 +40,7 @@ class TLDetector(object):
         self.stopping_waypoint_distance = 1000
 
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
-        self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb_function)
+        self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         self.vehicle_traffic_lights_sub = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
         self.current_velocity = 0
         self.current_angular_velocity = 0
