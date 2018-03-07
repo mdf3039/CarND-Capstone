@@ -208,7 +208,7 @@ class DBWNode(object):
             # rospy.loginfo("Closest points: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
             # rospy.loginfo("Closest points: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
             # get the direction for the steer value
-            if (np.cross(two_closest_points[0]-self.prev_prev_midpoint,circle_points[2]-self.prev_prev_midpoint)>0):
+            if (np.cross(two_closest_points[0]-self.prev_prev_midpoint,circle_points[2]-self.prev_prev_midpoint)<0):
                 steer_value *= -1
             if np.all(self.prev_prev_midpoint == self.prev_midpoint):
                 steer_value *= -1
