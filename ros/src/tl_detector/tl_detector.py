@@ -166,6 +166,7 @@ class TLDetector(object):
             msg (Image): image from car-mounted camera
 
         """
+        rospy.loginfo("Image Obtained.")
         self.camera_image = msg
         #
         #
@@ -189,6 +190,7 @@ class TLDetector(object):
         self.state_count += 1
         # implement the process traffic lights function
         self.process_traffic_lights()
+        rospy.loginfo("Image Processed.")
 
     def process_traffic_lights(self):
         """Finds closest visible traffic light, if one exists, and determines its

@@ -62,7 +62,7 @@ class WaypointUpdater(object):
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
         self.traffic_waypoint = rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
 
-        self.loop()
+        # self.loop()
         # TODO: Add other member variables you need below
 
 
