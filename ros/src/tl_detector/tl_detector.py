@@ -24,9 +24,9 @@ class TLDetector(object):
 
         config_string = rospy.get_param("/traffic_light_config")
         self.config = yaml.load(config_string)
-        rospy.loginfo("The config type: " + str(type(self.config)))
-        rospy.loginfo("The config sub type: " + str(type(self.config.keys)))
-        rospy.loginfo("The config sub sub type: " + str(self.config))
+        # rospy.loginfo("The config type: " + str(type(self.config)))
+        # rospy.loginfo("The config sub type: " + str(type(self.config.keys)))
+        # rospy.loginfo("The config sub sub type: " + str(self.config))
 
         self.pose = None
         self.waypoints = None
@@ -122,7 +122,7 @@ class TLDetector(object):
         nearest_light = np.amin(traffic_light_distances)
         #if the base waypoints are not loaded
         if self.base_waypoints is None:
-            rospy.loginfo("THE BASE WAYPOINTS ARE NOT THERE")
+            # rospy.loginfo("THE BASE WAYPOINTS ARE NOT THERE")
             self.stopping_waypoint_index = 0
             self.stopping_waypoint_distance = 10000
             return

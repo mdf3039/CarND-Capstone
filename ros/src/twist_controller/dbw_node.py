@@ -103,7 +103,7 @@ class DBWNode(object):
         self.loop() # rospy.spin()
 
     def loop(self):
-        rate = rospy.Rate(2) # 1Hz
+        rate = rospy.Rate(4) # 1Hz
         while not rospy.is_shutdown():
             self.pose_cb(self.c_position)
             rate.sleep()
@@ -241,9 +241,9 @@ class DBWNode(object):
             #     self.cte_sign *= -1
             # self.cte *= self.cte_sign
             # self.prev_cte = self.cte
-            kp_cte = 0.05# - .15*self.current_velocity/self.maximum_velocity###07 best is 0.31, .41
+            kp_cte = 0.25# - .15*self.current_velocity/self.maximum_velocity###07 best is 0.31, .41
             ki_cte = 0.0#16#.08 # 1.015
-            kd_cte = 0.0#5#.35 # 0.5
+            kd_cte = 0.5#5#.35 # 0.5
             pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
             # The difference in the angle will also affect the steering angle
             # Since the angle is not accurate, use the previous position
@@ -277,7 +277,7 @@ class DBWNode(object):
             self.prev_msg = msg
             rospy.loginfo("The steer value: " + str(steer_value))
             rospy.loginfo("The PID CTE: " + str(pid_step_cte))
-            rospy.loginfo("The STR: " + str(steer_value+pid_step_angle+pid_step_cte))
+            # rospy.loginfo("The STR: " + str(steer_value+pid_step_angle+pid_step_cte))
             # the drive model will determine the throttle and brake
             if self.drive_model==-2:
                 throttle, brake = 0, 0

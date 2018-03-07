@@ -105,7 +105,7 @@ class WaypointUpdater(object):
         if self.base_waypoints is None:
             # rospy.loginfo("THE BASE WAYPOINTS ARE NOT THERE")
             return
-        rospy.loginfo("THE BASE WAYPOINTS ARE FOUND")
+        # rospy.loginfo("THE BASE WAYPOINTS ARE FOUND")
         for each_waypoint in self.base_waypoints:
             #create variables for the placement of the waypoint
             each_waypointx = each_waypoint.pose.pose.position.x
