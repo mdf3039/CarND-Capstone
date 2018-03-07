@@ -158,6 +158,7 @@ class TLDetector(object):
 
     def image_cb(self, msg):
         if msg is None:
+            rospy.loginfo("MSG is None.")
             return
         """Identifies red lights in the incoming camera image and publishes the index
             of the waypoint closest to the red light's stop line to /traffic_waypoint
