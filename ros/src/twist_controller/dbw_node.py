@@ -170,16 +170,21 @@ class DBWNode(object):
                 steer_value = angle * self.steer_ratio
                 #to get the direction of the steer value, transform the last point into the coordinate space. If the slope is
                 #negative, then the steer value is negative
-                each_waypointx = circle_points[2,0]
-                each_waypointy = circle_points[2,1]
-                cw_position = np.arctan2(msg[1]-self.prev_msg[1],msg[0]-self.prev_msg[0])
-                # transform the waypoint
-                shift_x = each_waypointx - circle_points[0,0]
-                shift_y = each_waypointy - circle_points[0,1]
-                each_waypointx = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position)
-                each_waypointy = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
-                if each_waypointy<0:
+                # each_waypointx = circle_points[2,0]
+                # each_waypointy = circle_points[2,1]
+                # cw_position = np.arctan2(msg[1]-self.prev_msg[1],msg[0]-self.prev_msg[0])
+                # # transform the waypoint
+                # shift_x = each_waypointx - circle_points[0,0]
+                # shift_y = each_waypointy - circle_points[0,1]
+                # each_waypointx = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position)
+                # each_waypointy = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
+                # just take the cross product to get the direction
+                if (np.cross(two_closest_points[0]-self.prev_prev_midpoint,circle_points[2]-self.prev_prev_midpoint)>0):
                     steer_value *= -1
+                if np.all(self.prev_prev_midpoint == self.prev_midpoint):
+                    steer_value *= -1
+                # if each_waypointy<0:
+                #     steer_value *= -1
             except:
                 steer_value = 0
             #the sign of the steer value depends on the slope from the first to the last point
@@ -243,7 +248,7 @@ class DBWNode(object):
             # self.prev_cte = self.cte
             kp_cte = 0.35 - .25*self.current_velocity/self.maximum_velocity###07 best is 0.31, .41
             ki_cte = 0.0#16#.08 # 1.015
-            kd_cte = 0.5 - .25*self.current_velocity/self.maximum_velocity#5#.35 # 0.5
+            kd_cte = 0.5 - .15*self.current_velocity/self.maximum_velocity#5#.35 # 0.5
             pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
             # The difference in the angle will also affect the steering angle
             # Since the angle is not accurate, use the previous position
