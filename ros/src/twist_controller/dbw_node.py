@@ -103,7 +103,7 @@ class DBWNode(object):
         self.loop() # rospy.spin()
 
     def loop(self):
-        rate = rospy.Rate(15) # 1Hz
+        rate = rospy.Rate(5) # 1Hz
         while not rospy.is_shutdown():
             self.pose_cb(self.c_position)
             rate.sleep()
