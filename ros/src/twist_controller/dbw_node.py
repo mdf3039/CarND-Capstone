@@ -300,6 +300,7 @@ class DBWNode(object):
             if self.dbw_enabled_bool:
                 rospy.loginfo("The steer: " + str(steer_value+pid_step_angle+pid_step_cte))
                 self.publish(throttle=throttle, brake=brake, steer=steer_value+pid_step_angle+pid_step_cte)
+                rospy.loginfo("The controls published.")
     
     def traffic_cb(self, msg):
         #choose the model, depending upon the msg
