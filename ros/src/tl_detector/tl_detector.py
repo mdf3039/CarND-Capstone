@@ -74,7 +74,8 @@ class TLDetector(object):
         self.Red_Light = 0
         
 
-        self.loop() # rospy.spin()
+        # self.loop()
+        rospy.spin()
 
     def loop(self):
         rate = rospy.Rate(1) # 1Hz
@@ -154,6 +155,7 @@ class TLDetector(object):
         self.vehicle_traffic_lights = msg
 
     def image_cb_function(self, msg):
+        rospy.loginfo("Image has arrived.")
         self.c_image = msg
 
     def image_cb(self, msg):
