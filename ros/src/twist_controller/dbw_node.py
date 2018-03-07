@@ -179,10 +179,10 @@ class DBWNode(object):
                 # each_waypointx = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position)
                 # each_waypointy = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
                 # just take the cross product to get the direction
-                if (np.cross(two_closest_points[0]-self.prev_prev_midpoint,circle_points[2]-self.prev_prev_midpoint)>0):
-                    steer_value *= -1
-                if np.all(self.prev_prev_midpoint == self.prev_midpoint):
-                    steer_value *= -1
+                # if (np.cross(two_closest_points[0]-self.prev_prev_midpoint,circle_points[2]-self.prev_prev_midpoint)>0):
+                #     steer_value *= -1
+                # if np.all(self.prev_prev_midpoint == self.prev_midpoint):
+                #     steer_value *= -1
                 # if each_waypointy<0:
                 #     steer_value *= -1
             except:
@@ -207,6 +207,11 @@ class DBWNode(object):
                 self.prev_midpoint = np.divide(np.add(two_closest_points[0],two_closest_points[1]),2.0).copy()
             # rospy.loginfo("Closest points: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
             # rospy.loginfo("Closest points: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
+            # get the direction for the steer value
+            if (np.cross(two_closest_points[0]-self.prev_prev_midpoint,circle_points[2]-self.prev_prev_midpoint)>0):
+                steer_value *= -1
+            if np.all(self.prev_prev_midpoint == self.prev_midpoint):
+                steer_value *= -1
             # transform the current position with respect to the direction of the two closest points
             each_waypointx = msg[0]
             each_waypointy = msg[1]
