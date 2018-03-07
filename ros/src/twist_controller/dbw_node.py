@@ -103,7 +103,7 @@ class DBWNode(object):
         self.loop() # rospy.spin()
 
     def loop(self):
-        rate = rospy.Rate(4) # 1Hz
+        rate = rospy.Rate(15) # 1Hz
         while not rospy.is_shutdown():
             self.pose_cb(self.c_position)
             rate.sleep()
@@ -213,21 +213,21 @@ class DBWNode(object):
             if np.all(self.prev_prev_midpoint == self.prev_midpoint):
                 steer_value *= -1
             # transform the current position with respect to the direction of the two closest points
-            each_waypointx = msg[0]
-            each_waypointy = msg[1]
+            # each_waypointx = msg[0]
+            # each_waypointy = msg[1]
             # rospy.loginfo("each_waypointx: " + str(each_waypointx))
             # rospy.loginfo("each_waypointy: " + str(each_waypointy))
-            cw_position = np.arctan2(two_closest_points[1][1]-two_closest_points[0][1],two_closest_points[1][0]-two_closest_points[0][0])
-            if (cw_position<=np.pi and cw_position>=np.pi/2.0):
-                cw_position -= np.pi
-            elif (cw_position>=-1.0*np.pi and cw_position<=-1.0*np.pi/2.0):
-                cw_position += np.pi
+            # cw_position = np.arctan2(two_closest_points[1][1]-two_closest_points[0][1],two_closest_points[1][0]-two_closest_points[0][0])
+            # if (cw_position<=np.pi and cw_position>=np.pi/2.0):
+            #     cw_position -= np.pi
+            # elif (cw_position>=-1.0*np.pi and cw_position<=-1.0*np.pi/2.0):
+            #     cw_position += np.pi
             # rospy.loginfo("cw_position: " + str(cw_position))
             # transform the waypoint
-            shift_x = each_waypointx - two_closest_points[0][0]
-            shift_y = each_waypointy - two_closest_points[0][1]
-            each_waypointx = shift_x * math.cos(cw_position) + shift_y * math.sin(cw_position)
-            each_waypointy = -1 * shift_x * math.sin(cw_position) + shift_y * math.cos(cw_position)
+            # shift_x = each_waypointx - two_closest_points[0][0]
+            # shift_y = each_waypointy - two_closest_points[0][1]
+            # each_waypointx = shift_x * math.cos(cw_position) + shift_y * math.sin(cw_position)
+            # each_waypointy = -1 * shift_x * math.sin(cw_position) + shift_y * math.cos(cw_position)
             # rospy.loginfo("shift_x: " + str(shift_x))
             # rospy.loginfo("shift_y: " + str(shift_y))
             # rospy.loginfo("each_waypointx: " + str(each_waypointx))
@@ -253,7 +253,7 @@ class DBWNode(object):
             # self.prev_cte = self.cte
             kp_cte = 0.1 - .05*self.current_velocity/self.maximum_velocity###07 best is 0.31, .41
             ki_cte = 0.0#16#.08 # 1.015
-            kd_cte = 0.5 - .40*self.current_velocity/self.maximum_velocity#5#.35 # 0.5
+            kd_cte = 0.25 + .40*self.current_velocity/self.maximum_velocity#5#.35 # 0.5
             pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
             # The difference in the angle will also affect the steering angle
             # Since the angle is not accurate, use the previous position
@@ -283,7 +283,7 @@ class DBWNode(object):
             # kd_angle = 0.0#.35 # 0.5
             # pid_controller_angle = self.pid_controller_angle.step(angle_difference, self.sample_time, kp_angle, ki_angle, kd_angle)
             # pid_step_angle = max(min(self.pid_controller_angle.step(angle_difference, self.sample_time, kp_angle, ki_angle, kd_angle), 8), -8)
-            pid_step_angle = 0
+            # pid_step_angle = 0
             self.prev_msg = msg
             rospy.loginfo("The steer value: " + str(steer_value))
             rospy.loginfo("The PID CTE: " + str(pid_step_cte))
@@ -308,8 +308,8 @@ class DBWNode(object):
             # throttle, brake = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
             #                                                                     self.current_velocity, self.current_angular_velocity)
             if self.dbw_enabled_bool:
-                rospy.loginfo("The steer: " + str(steer_value+pid_step_angle+pid_step_cte))
-                self.publish(throttle=throttle, brake=brake, steer=steer_value+pid_step_angle+pid_step_cte)
+                rospy.loginfo("The steer: " + str(steer_value+pid_step_cte))
+                self.publish(throttle=throttle, brake=brake, steer=steer_value+pid_step_cte)
                 rospy.loginfo("The controls published.")
     
     def traffic_cb(self, msg):
