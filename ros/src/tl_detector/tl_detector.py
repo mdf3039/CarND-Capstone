@@ -97,7 +97,7 @@ class TLDetector(object):
     def pose_cb(self, msg):
         self.pose = np.array([msg.pose.position.x,msg.pose.position.y])
         # given the current position, find the closest traffic light stop line
-        if self.prev_pose is None or self.prev_pose == self.pose:
+        if self.prev_pose is None or np.all(self.prev_pose == self.pose):
             self.prev_pose = self.pose - 0.1
         # find the distances from the current position and the stop lines
         stop_line_positions = np.array(self.config['stop_line_positions'])
@@ -120,65 +120,14 @@ class TLDetector(object):
         # Find the waypoint that is smaller than, but closest to, the nearest light distance
         self.stopping_waypoint_index = np.argmax(base_waypoint_distances[np.where(base_waypoint_distances<=nearest_light)[0]])
         self.stopping_waypoint_distance = np.amax(base_waypoint_distances[np.where(base_waypoint_distances<=nearest_light)[0]])
-        # #and which waypoint is closest to that traffic light
-        # traffic_light_distances = []
-        # waypoint_distances = []
-        # #Transform all traffic light coordinates into the current_position coordinate space
-        # # create variables obtaining the placement of the vehicle
-        # cx_position = msg.pose.position.x
-        # cy_position = msg.pose.position.y
-        # cz_position = msg.pose.position.z
-        # cw_position = msg.pose.orientation.w
-        # self.current_pose = msg
-        # for each_stop_line in self.config['stop_line_positions']:
-        #     #create variables for the placement of the traffic_light
-        #     each_stop_linex = each_stop_line[0]
-        #     each_stop_liney = each_stop_line[1]
-        #     # transform the waypoint
-        #     shift_x = each_stop_linex - cx_position
-        #     shift_y = each_stop_liney - cy_position
-        #     each_stop_linex = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position)
-        #     each_stop_liney = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
-        #     #append distance if x is positive, otherwise append a large number
-        #     if each_stop_linex > 0:
-        #         traffic_light_distances.append((each_stop_linex**2 + each_stop_liney**2*1.0)**(1.0/2))
-        #     else:
-        #         traffic_light_distances.append(100000000)
-        # #find the smallest distance to a traffic light
-        # nearest_light = np.amin(traffic_light_distances)
-        # #if the base waypoints are not loaded
-        # if self.base_waypoints is None:
-        #     # rospy.loginfo("THE BASE WAYPOINTS ARE NOT THERE")
-        #     self.stopping_waypoint_index = 0
-        #     self.stopping_waypoint_distance = 10000
-        #     return
-        # #Transform all waypoint coordinates into the current position coordinate space
-        # for each_waypoint in self.base_waypoints.waypoints:
-        #     #create variables for the placement of the waypoint
-        #     each_waypointx = each_waypoint.pose.pose.position.x
-        #     each_waypointy = each_waypoint.pose.pose.position.y
-        #     # transform the waypoint
-        #     shift_x = each_waypointx - cx_position
-        #     shift_y = each_waypointy - cy_position
-        #     each_waypointx = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position)
-        #     each_waypointy = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
-        #     wp_distance = (each_waypointx**2 + each_waypointy**2*1.0)**(1.0/2)
-        #     #append the distance if x is positive and smaller than the nearest light's distance, otherwise append a small number
-        #     if (each_waypointx > 0 and wp_distance < nearest_light):
-        #         waypoint_distances.append(wp_distance)
-        #     else:
-        #         waypoint_distances.append(-1)
-        # #find the index of the largest distanced waypoint (which is the one closest to the nearest light)
-        # self.stopping_waypoint_index = np.argmax(waypoint_distances)
-        # self.stopping_waypoint_distance = np.amax(waypoint_distances)
-        
+        #the current position will be the previous position
+        self.prev_pose = self.pose.copy()
 
     def waypoints_cb(self, msg):
         base_waypoints = []
         for each_waypoint in msg.waypoints:
             base_waypoints.append([each_waypoint.pose.pose.position.x, each_waypoint.pose.pose.position.y])
         self.base_waypoints = np.array(base_waypoints)
-
 
     def traffic_cb(self, msg):
         self.vehicle_traffic_lights = msg
