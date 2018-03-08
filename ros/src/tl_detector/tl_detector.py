@@ -155,7 +155,9 @@ class TLDetector(object):
         # classification as the variable state (not self.state) 
         # Unknown_Light = 4, Green_Light = 2, Yellow_Light = 1, Red_Light = 0
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
+        rospy.loginfo("Image Bridged.")
         state = self.light_classifier.get_classification(cv_image)
+        rospy.loginfo("Image Classified.")
 
         '''
         Publish upcoming red lights at camera frequency.
