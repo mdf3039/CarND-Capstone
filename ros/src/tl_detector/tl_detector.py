@@ -53,7 +53,7 @@ class TLDetector(object):
         simulator. When testing on the vehicle, the color state will not be available. You'll need to
         rely on the position of the light and the camera image to predict it.
         '''
-        sub6_sub = rospy.Subscriber('/image_color', Image, self.image_cb_function)
+        # sub6_sub = rospy.Subscriber('/image_color', Image, self.image_cb_function)
 
 
 
@@ -80,7 +80,7 @@ class TLDetector(object):
     def loop(self):
         rate = rospy.Rate(1) # 1Hz
         while not rospy.is_shutdown():
-            self.image_cb(self.c_image)
+            self.image_cb(rospy.wait_for_message('/image_color', Image))
             rate.sleep()
 
     def kmph2mps(self, velocity_kmph):
