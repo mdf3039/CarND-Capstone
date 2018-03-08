@@ -68,9 +68,11 @@ class WaypointUpdater(object):
 
 
     def loop(self):
-        rate = rospy.Rate(1) # 1Hz
+        rate = rospy.Rate(10) # 1Hz
         while not rospy.is_shutdown():
+            rospy.loginfo("THE current position: " + str(self.c_position))
             self.pose_cb(self.c_position)
+            rospy.loginfo("Finished")
             rate.sleep()
 
     def kmph2mps(self, velocity_kmph):
