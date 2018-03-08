@@ -103,7 +103,7 @@ class DBWNode(object):
         self.loop() # rospy.spin()
 
     def loop(self):
-        rate = rospy.Rate(5) # 1Hz
+        rate = rospy.Rate(50) # 1Hz
         while not rospy.is_shutdown():
             self.pose_cb(self.c_position)
             rate.sleep()
@@ -253,7 +253,7 @@ class DBWNode(object):
             # self.prev_cte = self.cte
             kp_cte = 0.1 - .05*self.current_velocity/self.maximum_velocity###07 best is 0.31, .41
             ki_cte = 0.0#16#.08 # 1.015
-            kd_cte = 0.25 + .40*self.current_velocity/self.maximum_velocity#5#.35 # 0.5
+            kd_cte = 0.25 + .20*self.current_velocity/self.maximum_velocity#5#.35 # 0.5
             pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
             # The difference in the angle will also affect the steering angle
             # Since the angle is not accurate, use the previous position
