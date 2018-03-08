@@ -51,18 +51,19 @@ class WaypointUpdater(object):
         self.transformed_xy = []
         self.oncoming_waypoints = None
         self.c_position = None
+        self.prev_pose = None
 
         self.final_waypoints_pub = rospy.Publisher('/final_waypoints', Lane, queue_size=1)
-        self.cte_pub = rospy.Publisher('/cross_track_error',Float64, queue_size=1)
+        # self.cte_pub = rospy.Publisher('/cross_track_error',Float64, queue_size=1)
 
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
-        self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
+        # self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
         self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb_function)
 
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
-        self.traffic_waypoint = rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
+        # self.traffic_waypoint = rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
 
-        # self.loop()
+        self.loop()
         # TODO: Add other member variables you need below
 
 
@@ -83,78 +84,41 @@ class WaypointUpdater(object):
         # pass
     
     def pose_cb_function(self, msg):
-        self.c_position = msg
+        self.c_position = np.array([msg.pose.position.x, msg.pose.position.y])
 
     def pose_cb(self, msg):
         if msg is None:
             return
-        # TODO: Implement
-        # Using the data from the current position, provide waypoints ahead
-        # create variables obtaining the placement of the vehicle
-        cx_position = msg.pose.position.x
-        cy_position = msg.pose.position.y
-        cz_position = msg.pose.position.z
-        cw_position = msg.pose.orientation.w
-        # Find the waypoints in the base waypoints that are after the current position and less than 70 m away
-        # the points will need to be transformed into the vehicle's coordinate space
-        self.oncoming_waypoints = Lane()
-        self.oncoming_waypoints_distance = []
-        self.transformed_xy = []
-        self.two_closest_waypoints = np.empty((0,3), float)
-        # If the Base Waypoints have not been uploaded yet, do not start
         if self.base_waypoints is None:
             # rospy.loginfo("THE BASE WAYPOINTS ARE NOT THERE")
             return
-        # rospy.loginfo("THE BASE WAYPOINTS ARE FOUND")
-        for each_waypoint in self.base_waypoints:
-            #create variables for the placement of the waypoint
-            each_waypointx = each_waypoint.pose.pose.position.x
-            each_waypointy = each_waypoint.pose.pose.position.y
-            each_waypointz = each_waypoint.pose.pose.position.z
-            # transform the waypoint
-            shift_x = each_waypointx - cx_position
-            shift_y = each_waypointy - cy_position
-            each_waypointx = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position)
-            each_waypointy = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
-            # obtain the distance
-            waypoint_distance = (each_waypointx**2 + each_waypointy**2 * 1.0)**(0.5)
-            #if the waypoint is in proximity of the vehicle and in front of the vehicle
-            if (waypoint_distance<DISTANCE_AHEAD and each_waypointx>0):
-                # add to the oncoming waypoints
-                self.oncoming_waypoints.waypoints.append(each_waypoint)
-                # add to the distance list holder
-                self.oncoming_waypoints_distance.append(waypoint_distance)
-                #add the transformed x and y to a list to store the transformed x and y. Use to make polynomial fitting later 
-                #self.transformed_xy.append([each_waypointx,each_waypointy])
-            #for the cross track error, keep the two waypoints that are closest to the current position
-            #record the distance, x, and y for the waypoints
-            # self.two_closest_waypoints = np.append(self.two_closest_waypoints, np.array([[waypoint_distance,each_waypointx,each_waypointy]]), axis=0)
-            # self.two_closest_waypoints = self.two_closest_waypoints[self.two_closest_waypoints[:,0].argsort()[:2]]
-        #Find the distance from the line segment of the two closest points and the current position(0,0)
-        # self.cross_track_error = self.two_closest_waypoints[0,2] - self.two_closest_waypoints[0,1]*(self.two_closest_waypoints[0,2]-self.two_closest_waypoints[1,2])/(self.two_closest_waypoints[0,1]-self.two_closest_waypoints[1,1])
-        #fit the polynomial
-        #self.transformed_xy = np.array(self.transformed_xy)
-        #poly_output = np.poly1d(np.polyfit(self.transformed_xy[:,0].tolist(), self.transformed_xy[:,1].tolist(), 3))
-        #untransform the points
-        #for 
-        # sort oncoming waypoints with respect to the distance from the current position
-        self.oncoming_waypoints_distance_sorted = np.array(self.oncoming_waypoints_distance).argsort()[:LOOKAHEAD_WPS].astype(int).tolist()
+        # TODO: Implement
+        if self.prev_pose is None or np.all(self.prev_pose == msg):
+            self.prev_pose = msg - 0.1
+        # Find the waypoints in the base waypoints that are after the current position and less than 70 m away
+        # obtain the distance then use the sign of the dot product
+        waypoint_distances = np.sqrt(((self.base_waypoints - msg)**2).sum(axis=1))
+        # Find the sign of the dot product of the position vector and the base waypoints wrt the previous position
+        dot_product_sign = np.sign(np.dot(self.base_waypoints-self.prev_pose, msg-self.prev_pose))
+        # Multiply the waypoint_distances by their respective sign. Positive distances mean in front of car
+        waypoint_distances = np.multiply(waypoint_distances,dot_product_sign)
+        # obtain the indices of the smallest positive LOOKAHEAD_WPS. Set all negative distance values to 1,000,000 to make easier.
+        waypoint_distances[np.where(waypoint_distances<0)[0]] = 1000000
+        indices = waypoint_distances.argsort()[:LOOKAHEAD_WPS].astype(int).tolist()
         # create a final_waypoints
         self.final_waypoints = Lane()
-        # add the waypoints to the final_waypoints with respect to the sorted distance. Also change the speed to the max_velocity
-        for each_index in self.oncoming_waypoints_distance_sorted:
-            self.final_waypoints.waypoints.append(self.oncoming_waypoints.waypoints[each_index])
-            #Also change the speed to the max_velocity
-            self.final_waypoints.waypoints[-1].twist.twist.linear.x = 8#self.maximum_velocity
+        # add the waypoints to the final_waypoints with respect to the sorted distance.
+        for each_index in indices:
+            self.final_waypoints.waypoints.append(self.wpts[each_index])
         self.final_waypoints_pub.publish(self.final_waypoints)
-        # rospy.loginfo("The CTE in wpt_updtr: " + str(self.cross_track_error))
-        # self.cte_pub.publish(self.cross_track_error)
 
-    def waypoints_cb(self, waypoints):
+    def waypoints_cb(self, msg):
+        self.wpts = msg.waypoints
         # TODO: Implement
-        # rospy.loginfo("Oncoming Waypoints are loading")
-        self.base_waypoints = waypoints.waypoints
-        # rospy.loginfo("The number of oncoming waypoints are: " + str(len(waypoints.waypoints)))
+        base_waypoints = []
+        for each_waypoint in msg.waypoints:
+            base_waypoints.append([each_waypoint.pose.pose.position.x, each_waypoint.pose.pose.position.y])
+        self.base_waypoints = np.array(base_waypoints)
 
     def traffic_cb(self, msg):
         #choose the model, depending upon the msg

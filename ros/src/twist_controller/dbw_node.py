@@ -169,23 +169,6 @@ class DBWNode(object):
                 #convert the angle into degrees then divide by the steering ratio to get the steer value
                 angle = np.arcsin(self.wheel_base/radius) #* (180.0/np.pi)
                 steer_value = angle * self.steer_ratio
-                #to get the direction of the steer value, transform the last point into the coordinate space. If the slope is
-                #negative, then the steer value is negative
-                # each_waypointx = circle_points[2,0]
-                # each_waypointy = circle_points[2,1]
-                # cw_position = np.arctan2(msg[1]-self.prev_msg[1],msg[0]-self.prev_msg[0])
-                # # transform the waypoint
-                # shift_x = each_waypointx - circle_points[0,0]
-                # shift_y = each_waypointy - circle_points[0,1]
-                # each_waypointx = shift_x * math.cos(0-cw_position) - shift_y * math.sin(0-cw_position)
-                # each_waypointy = shift_x * math.sin(0-cw_position) + shift_y * math.cos(0-cw_position)
-                # just take the cross product to get the direction
-                # if (np.cross(two_closest_points[0]-self.prev_prev_midpoint,circle_points[2]-self.prev_prev_midpoint)>0):
-                #     steer_value *= -1
-                # if np.all(self.prev_prev_midpoint == self.prev_midpoint):
-                #     steer_value *= -1
-                # if each_waypointy<0:
-                #     steer_value *= -1
             except:
                 steer_value = 0
             #the sign of the steer value depends on the slope from the first to the last point
@@ -213,27 +196,6 @@ class DBWNode(object):
                 steer_value *= -1
             if np.all(self.prev_prev_midpoint == self.prev_midpoint):
                 steer_value *= -1
-            # transform the current position with respect to the direction of the two closest points
-            # each_waypointx = msg[0]
-            # each_waypointy = msg[1]
-            # rospy.loginfo("each_waypointx: " + str(each_waypointx))
-            # rospy.loginfo("each_waypointy: " + str(each_waypointy))
-            # cw_position = np.arctan2(two_closest_points[1][1]-two_closest_points[0][1],two_closest_points[1][0]-two_closest_points[0][0])
-            # if (cw_position<=np.pi and cw_position>=np.pi/2.0):
-            #     cw_position -= np.pi
-            # elif (cw_position>=-1.0*np.pi and cw_position<=-1.0*np.pi/2.0):
-            #     cw_position += np.pi
-            # rospy.loginfo("cw_position: " + str(cw_position))
-            # transform the waypoint
-            # shift_x = each_waypointx - two_closest_points[0][0]
-            # shift_y = each_waypointy - two_closest_points[0][1]
-            # each_waypointx = shift_x * math.cos(cw_position) + shift_y * math.sin(cw_position)
-            # each_waypointy = -1 * shift_x * math.sin(cw_position) + shift_y * math.cos(cw_position)
-            # rospy.loginfo("shift_x: " + str(shift_x))
-            # rospy.loginfo("shift_y: " + str(shift_y))
-            # rospy.loginfo("each_waypointx: " + str(each_waypointx))
-            # rospy.loginfo("each_waypointy: " + str(each_waypointy))
-            # if ((msg[0]-two_closest_points[0][0])*(two_closest_points[1][1]-two_closest_points[0][1])-(msg[1]-two_closest_points[0][1])*(two_closest_points[1][0]-two_closest_points[0][0])) > 0:
             self.cte = abs(np.linalg.norm(np.cross(two_closest_points[0]-two_closest_points[1], two_closest_points[1]-msg))/np.linalg.norm(two_closest_points[0]-two_closest_points[1]))
             rospy.loginfo("The CTE: " + str(self.cte))
             #the cross product will determine the direction. if the cross product is positive, the the car is to the left, cte is negative
@@ -241,17 +203,12 @@ class DBWNode(object):
             rospy.loginfo("msg-self.prev_prev_midpoint: " + str(msg-self.prev_prev_midpoint))
             rospy.loginfo("self.prev_prev_midpoint: " + str(self.prev_prev_midpoint))
             rospy.loginfo("np.cross: " + str(np.cross(two_closest_points[0]-self.prev_prev_midpoint,msg-self.prev_prev_midpoint)))
-            # course_midpoint = np.array([1247.634,2067.19])
-            if (np.cross(two_closest_points[0]-self.prev_prev_midpoint,msg-self.prev_prev_midpoint)>0):# or ((course_midpoint-msg)**2).sum() < ((course_midpoint-self.prev_midpoint)**2).sum()):
+            if (np.cross(two_closest_points[0]-self.prev_prev_midpoint,msg-self.prev_prev_midpoint)>0):
                 self.cte *= -1
             if np.all(self.prev_prev_midpoint == self.prev_midpoint):
                 self.cte *= -1
             # if ((course_midpoint-msg)**2).sum() < ((course_midpoint-self.prev_midpoint)**2).sum():
             rospy.loginfo("The CTE: " + str(self.cte))
-            # if abs(self.cte)>abs(self.prev_cte):
-            #     self.cte_sign *= -1
-            # self.cte *= self.cte_sign
-            # self.prev_cte = self.cte
             kp_cte = 0.0#0.1 - .05*self.current_velocity/self.maximum_velocity###07 best is 0.31, .41
             ki_cte = 0.0#16#.08 # 1.015
             kd_cte = 0.0#0.25 + .20*self.current_velocity/self.maximum_velocity#5#.35 # 0.5
