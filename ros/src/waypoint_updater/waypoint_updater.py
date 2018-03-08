@@ -111,6 +111,8 @@ class WaypointUpdater(object):
         for each_index in indices:
             self.final_waypoints.waypoints.append(self.wpts[each_index])
         self.final_waypoints_pub.publish(self.final_waypoints)
+        # make the msg the prev_pose
+        self.prev_pose = msg.copy()
 
     def waypoints_cb(self, msg):
         self.wpts = msg.waypoints
