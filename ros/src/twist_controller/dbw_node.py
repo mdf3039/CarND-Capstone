@@ -83,7 +83,7 @@ class DBWNode(object):
         #self.twist_cmd_sub = rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_function)
         self.dbw_enabled_bool = False
         self.dbw_enabled_sub = rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_function)
-        self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+        self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb_function)
         self.traffic_waypoint = rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
 
         # obtain min_speed for the yaw controller by adding the deceleration times time to the current velocity
@@ -100,11 +100,11 @@ class DBWNode(object):
         self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
                                          BrakeCmd, queue_size=1)
 
-        # self.loop() 
-        rospy.spin()
+        self.loop() 
+        # rospy.spin()
 
     def loop(self):
-        rate = rospy.Rate(50) # 1Hz
+        rate = rospy.Rate(10) # 1Hz
         while not rospy.is_shutdown():
             self.pose_cb(self.c_position)
             rate.sleep()
@@ -252,9 +252,9 @@ class DBWNode(object):
             #     self.cte_sign *= -1
             # self.cte *= self.cte_sign
             # self.prev_cte = self.cte
-            kp_cte = 0.1 - .05*self.current_velocity/self.maximum_velocity###07 best is 0.31, .41
+            kp_cte = 0#0.1 - .05*self.current_velocity/self.maximum_velocity###07 best is 0.31, .41
             ki_cte = 0.0#16#.08 # 1.015
-            kd_cte = 0.25 + .20*self.current_velocity/self.maximum_velocity#5#.35 # 0.5
+            kd_cte = 0#0.25 + .20*self.current_velocity/self.maximum_velocity#5#.35 # 0.5
             pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
             # The difference in the angle will also affect the steering angle
             # Since the angle is not accurate, use the previous position
