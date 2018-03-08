@@ -152,9 +152,9 @@ class DBWNode(object):
             #find and append the closest, fourth, and eighth point
             circle_points = self.base_waypoints[np.argmin(wp_distances)]
             # rospy.loginfo("circle_points: " + str(circle_points))
-            circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+4)%len(wp_distances)].copy()))
-            # rospy.loginfo("circle_points: " + str(circle_points.shape))
             circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+8)%len(wp_distances)].copy()))
+            # rospy.loginfo("circle_points: " + str(circle_points.shape))
+            circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+16)%len(wp_distances)].copy()))
             # rospy.loginfo("circle_points: " + str(circle_points.shape))
             #use the three points to find the radius of the circle
             eval_matrix = np.vstack((-2*circle_points[:,0],-2*circle_points[:,1],(circle_points**2).sum(axis=1))).T
@@ -252,9 +252,9 @@ class DBWNode(object):
             #     self.cte_sign *= -1
             # self.cte *= self.cte_sign
             # self.prev_cte = self.cte
-            kp_cte = 0#0.1 - .05*self.current_velocity/self.maximum_velocity###07 best is 0.31, .41
+            kp_cte = 0.0#0.1 - .05*self.current_velocity/self.maximum_velocity###07 best is 0.31, .41
             ki_cte = 0.0#16#.08 # 1.015
-            kd_cte = 0#0.25 + .20*self.current_velocity/self.maximum_velocity#5#.35 # 0.5
+            kd_cte = 0.0#0.25 + .20*self.current_velocity/self.maximum_velocity#5#.35 # 0.5
             pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
             self.prev_msg = msg
             rospy.loginfo("The steer value: " + str(steer_value))
