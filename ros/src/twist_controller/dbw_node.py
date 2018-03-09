@@ -51,6 +51,7 @@ class DBWNode(object):
         
         # TODO: Subscribe to all the topics you need to
         self.maximum_velocity = self.kmph2mps(rospy.get_param('~velocity')) # change km/h to m/s and subtract 1 to make sure it is always lower
+        self.maximum_velocity = 20
         self.cte = 0
         self.cte_bool = False
         self.prev_sample_time = None
@@ -209,9 +210,9 @@ class DBWNode(object):
                 self.cte *= -1
             # if ((course_midpoint-msg)**2).sum() < ((course_midpoint-self.prev_midpoint)**2).sum():
             rospy.loginfo("The CTE: " + str(self.cte))
-            kp_cte = 0.0#0.1 - .05*self.current_velocity/self.maximum_velocity###07 best is 0.31, .41
+            kp_cte = 0.25#0.1 - .05*self.current_velocity/self.maximum_velocity###07 best is 0.31, .41
             ki_cte = 0.0#16#.08 # 1.015
-            kd_cte = 0.0#0.25 + .20*self.current_velocity/self.maximum_velocity#5#.35 # 0.5
+            kd_cte = 0.5#0.25 + .20*self.current_velocity/self.maximum_velocity#5#.35 # 0.5
             pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
             self.prev_msg = msg
             rospy.loginfo("The steer value: " + str(steer_value))
