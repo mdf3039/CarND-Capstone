@@ -79,7 +79,7 @@ class TLDetector(object):
         # rospy.spin()
 
     def loop(self):
-        rate = rospy.Rate(1) # 1Hz
+        rate = rospy.Rate(5) # 1Hz
         while not rospy.is_shutdown():
             self.image_cb(rospy.wait_for_message('/image_color', Image))
             rate.sleep()

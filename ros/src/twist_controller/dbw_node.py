@@ -51,7 +51,7 @@ class DBWNode(object):
         
         # TODO: Subscribe to all the topics you need to
         self.maximum_velocity = self.kmph2mps(rospy.get_param('~velocity')) # change km/h to m/s and subtract 1 to make sure it is always lower
-        self.maximum_velocity = 20
+        # self.maximum_velocity = 20
         self.cte = 0
         self.cte_bool = False
         self.prev_sample_time = None
@@ -153,9 +153,9 @@ class DBWNode(object):
             #find and append the closest, fourth, and eighth point
             circle_points = self.base_waypoints[np.argmin(wp_distances)]
             # rospy.loginfo("circle_points: " + str(circle_points))
-            circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+8)%len(wp_distances)].copy()))
+            circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+5)%len(wp_distances)].copy()))
             # rospy.loginfo("circle_points: " + str(circle_points.shape))
-            circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+16)%len(wp_distances)].copy()))
+            circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+10)%len(wp_distances)].copy()))
             # rospy.loginfo("circle_points: " + str(circle_points.shape))
             #use the three points to find the radius of the circle
             eval_matrix = np.vstack((-2*circle_points[:,0],-2*circle_points[:,1],(circle_points**2).sum(axis=1))).T
