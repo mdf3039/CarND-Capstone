@@ -95,8 +95,10 @@ class WaypointUpdater(object):
             # rospy.loginfo("THE BASE WAYPOINTS ARE NOT THERE")
             return
         # TODO: Implement
-        if self.prev_pose is None or np.all(self.prev_pose == msg):
+        if self.prev_pose is None:
             self.prev_pose = msg - 0.1
+        if np.all(self.prev_pose == msg):
+            return
         # Find the waypoints in the base waypoints that are after the current position and less than 70 m away
         # obtain the distance then use the sign of the dot product
         waypoint_distances = np.sqrt(((self.base_waypoints - msg)**2).sum(axis=1))
