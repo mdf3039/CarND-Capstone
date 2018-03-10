@@ -24,9 +24,9 @@ class TLDetector(object):
 
         config_string = rospy.get_param("/traffic_light_config")
         self.config = yaml.load(config_string)
-        rospy.loginfo("The config type: " + str(type(self.config)))
-        rospy.loginfo("The config sub type: " + str(type(self.config.keys)))
-        rospy.loginfo("The config sub sub type: " + str(self.config))
+        # rospy.loginfo("The config type: " + str(type(self.config)))
+        # rospy.loginfo("The config sub type: " + str(type(self.config.keys)))
+        # rospy.loginfo("The config sub sub type: " + str(self.config))
 
         self.pose = None
         self.prev_pose = None
@@ -130,7 +130,13 @@ class TLDetector(object):
         self.base_waypoints = np.array(base_waypoints)
 
     def traffic_cb(self, msg):
-        self.vehicle_traffic_lights = msg
+        self.vehicle_traffic_lights = []
+        for each_light in msg.lights:
+            self.vehicle_traffic_lights.append([each_light.pose.pose.position.x, each_light.pose.pose.position.y])
+        rospy.loginfo("     self.vehicle_traffic_lights: " + str(self.vehicle_traffic_lights))
+        rospy.loginfo("     self.config"str(self.config))
+
+
 
     def image_cb_function(self, msg):
         rospy.loginfo("Image has arrived.")
