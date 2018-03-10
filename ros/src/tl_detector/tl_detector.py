@@ -80,7 +80,7 @@ class TLDetector(object):
         # rospy.spin()
 
     def loop(self):
-        rate = rospy.Rate(5) # 1Hz
+        rate = rospy.Rate(2) # 1Hz
         while not rospy.is_shutdown():
             self.actual_image_test(rospy.wait_for_message('/vehicle/traffic_lights', TrafficLightArray))
             # self.image_cb(rospy.wait_for_message('/image_color', Image))
@@ -91,7 +91,7 @@ class TLDetector(object):
             return
         #using the actual sign of the traffic light instead of read from image
         state = int(msg.lights[self.nearest_light_index].state)
-        rospy.loginfo("Image Classified.")
+        # rospy.loginfo("Image Classified.")
         if self.state != state:
             self.state_count = 0
             self.state = state
@@ -100,7 +100,7 @@ class TLDetector(object):
         self.state_count += 1
         # implement the process traffic lights function
         self.process_traffic_lights()
-        rospy.loginfo("Image Processed.")
+        # rospy.loginfo("Image Processed.")
 
     def kmph2mps(self, velocity_kmph):
         return (velocity_kmph * 1000.) / (60. * 60.)

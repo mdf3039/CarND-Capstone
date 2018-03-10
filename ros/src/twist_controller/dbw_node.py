@@ -105,7 +105,7 @@ class DBWNode(object):
         # rospy.spin()
 
     def loop(self):
-        rate = rospy.Rate(10) # 1Hz
+        rate = rospy.Rate(5) # 1Hz
         while not rospy.is_shutdown():
             self.pose_cb(self.c_position)
             rate.sleep()
@@ -198,25 +198,25 @@ class DBWNode(object):
             if np.all(self.prev_prev_midpoint == self.prev_midpoint):
                 steer_value *= -1
             self.cte = abs(np.linalg.norm(np.cross(two_closest_points[0]-two_closest_points[1], two_closest_points[1]-msg))/np.linalg.norm(two_closest_points[0]-two_closest_points[1]))
-            rospy.loginfo("The CTE: " + str(self.cte))
+            # rospy.loginfo("The CTE: " + str(self.cte))
             #the cross product will determine the direction. if the cross product is positive, the the car is to the left, cte is negative
-            rospy.loginfo("two_closest_points[0]-self.prev_prev_midpoint: " + str(two_closest_points[0]-self.prev_prev_midpoint))
-            rospy.loginfo("msg-self.prev_prev_midpoint: " + str(msg-self.prev_prev_midpoint))
-            rospy.loginfo("self.prev_prev_midpoint: " + str(self.prev_prev_midpoint))
-            rospy.loginfo("np.cross: " + str(np.cross(two_closest_points[0]-self.prev_prev_midpoint,msg-self.prev_prev_midpoint)))
+            # rospy.loginfo("two_closest_points[0]-self.prev_prev_midpoint: " + str(two_closest_points[0]-self.prev_prev_midpoint))
+            # rospy.loginfo("msg-self.prev_prev_midpoint: " + str(msg-self.prev_prev_midpoint))
+            # rospy.loginfo("self.prev_prev_midpoint: " + str(self.prev_prev_midpoint))
+            # rospy.loginfo("np.cross: " + str(np.cross(two_closest_points[0]-self.prev_prev_midpoint,msg-self.prev_prev_midpoint)))
             if (np.cross(two_closest_points[0]-self.prev_prev_midpoint,msg-self.prev_prev_midpoint)>0):
                 self.cte *= -1
             if np.all(self.prev_prev_midpoint == self.prev_midpoint):
                 self.cte *= -1
             # if ((course_midpoint-msg)**2).sum() < ((course_midpoint-self.prev_midpoint)**2).sum():
-            rospy.loginfo("The CTE: " + str(self.cte))
+            # rospy.loginfo("The CTE: " + str(self.cte))
             kp_cte = 0.25#0.1 - .05*self.current_velocity/self.maximum_velocity###07 best is 0.31, .41
             ki_cte = 0.0#16#.08 # 1.015
             kd_cte = 0.5#0.25 + .20*self.current_velocity/self.maximum_velocity#5#.35 # 0.5
             pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
             self.prev_msg = msg
-            rospy.loginfo("The steer value: " + str(steer_value))
-            rospy.loginfo("The PID CTE: " + str(pid_step_cte))
+            # rospy.loginfo("The steer value: " + str(steer_value))
+            # rospy.loginfo("The PID CTE: " + str(pid_step_cte))
             # rospy.loginfo("The STR: " + str(steer_value+pid_step_angle+pid_step_cte))
             # the drive model will determine the throttle and brake
             if self.drive_model==-2:
@@ -238,9 +238,9 @@ class DBWNode(object):
             # throttle, brake = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
             #                                                                     self.current_velocity, self.current_angular_velocity)
             if self.dbw_enabled_bool:
-                rospy.loginfo("The steer: " + str(steer_value+pid_step_cte))
+                # rospy.loginfo("The steer: " + str(steer_value+pid_step_cte))
                 self.publish(throttle=throttle, brake=brake, steer=steer_value+pid_step_cte)
-                rospy.loginfo("The controls published.")
+                rospy.loginfo("The controls published: " + str(brake))
     
     def traffic_cb(self, msg):
         #choose the model, depending upon the msg
