@@ -134,7 +134,7 @@ class TLDetector(object):
         for each_light in msg.lights:
             self.vehicle_traffic_lights.append([each_light.pose.pose.position.x, each_light.pose.pose.position.y])
         rospy.loginfo("     self.vehicle_traffic_lights: " + str(self.vehicle_traffic_lights))
-        rospy.loginfo("     self.config"str(self.config))
+        rospy.loginfo("     self.config: " + str(self.config))
 
 
 
