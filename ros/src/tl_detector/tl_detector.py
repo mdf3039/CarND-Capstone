@@ -39,10 +39,11 @@ class TLDetector(object):
 
         self.stopping_waypoint_index = -1
         self.stopping_waypoint_distance = 1000
+        self.nearest_light_index = None
 
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
         self.current_pose_sub = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
-        self.vehicle_traffic_lights_sub = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
+        # self.vehicle_traffic_lights_sub = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
         self.current_velocity = 0
         self.current_angular_velocity = 0
         self.current_velocity_sub = rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_function)
@@ -81,8 +82,25 @@ class TLDetector(object):
     def loop(self):
         rate = rospy.Rate(5) # 1Hz
         while not rospy.is_shutdown():
-            self.image_cb(rospy.wait_for_message('/image_color', Image))
+            self.actual_image_test(rospy.wait_for_message('/vehicle/traffic_lights', TrafficLightArray))
+            # self.image_cb(rospy.wait_for_message('/image_color', Image))
             rate.sleep()
+
+    def actual_image_test(self, msg):
+        if self.nearest_light_index is None:
+            return
+        #using the actual sign of the traffic light instead of read from image
+        state = int(msg.lights[self.nearest_light_index].state)
+        rospy.loginfo("Image Classified.")
+        if self.state != state:
+            self.state_count = 0
+            self.state = state
+        elif self.state_count >= STATE_COUNT_THRESHOLD:
+            self.last_state = self.state
+        self.state_count += 1
+        # implement the process traffic lights function
+        self.process_traffic_lights()
+        rospy.loginfo("Image Processed.")
 
     def kmph2mps(self, velocity_kmph):
         return (velocity_kmph * 1000.) / (60. * 60.)
@@ -108,6 +126,8 @@ class TLDetector(object):
         traffic_light_distances = np.multiply(traffic_light_distances,dot_product_sign)
         #find the smallest positive distance to a traffic light
         nearest_light = np.amin(traffic_light_distances[np.where(traffic_light_distances>=0)[0]])
+        #obtain the index for the actual traffic sign image test
+        self.nearest_light_index = np.where(traffic_light_distances==nearest_light)[0][0]
         if self.base_waypoints is None:
             # rospy.loginfo("THE BASE WAYPOINTS ARE NOT THERE")
             self.stopping_waypoint_index = 0
@@ -118,8 +138,8 @@ class TLDetector(object):
         waypoint_dot_product_sign = np.sign(np.dot(self.base_waypoints-self.prev_pose, self.pose-self.prev_pose))
         base_waypoint_distances = np.multiply(base_waypoint_distances,waypoint_dot_product_sign)
         # Find the waypoint that is smaller than, but closest to, the nearest light distance
-        self.stopping_waypoint_index = np.argmax(base_waypoint_distances[np.where(base_waypoint_distances<=nearest_light)[0]])
         self.stopping_waypoint_distance = np.amax(base_waypoint_distances[np.where(base_waypoint_distances<=nearest_light)[0]])
+        self.stopping_waypoint_index  = np.where(base_waypoint_distances==self.stopping_waypoint_distance)[0][0]
         #the current position will be the previous position
         self.prev_pose = self.pose.copy()
 
@@ -133,8 +153,6 @@ class TLDetector(object):
         self.vehicle_traffic_lights = []
         for each_light in msg.lights:
             self.vehicle_traffic_lights.append([each_light.pose.pose.position.x, each_light.pose.pose.position.y])
-        rospy.loginfo("     self.vehicle_traffic_lights: " + str(self.vehicle_traffic_lights))
-        rospy.loginfo("     self.config: " + str(self.config))
 
 
 
