@@ -10,8 +10,8 @@
 ### Team members:
 
 - **Andreas Nilsson**
-        email: 
-        Udacity account:
+        email: eanean81@yahoo.se
+        Udacity account: https://profiles.udacity.com/p/8345159856
         
 - **Darshanand Khusial**
         email: 
