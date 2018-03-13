@@ -91,7 +91,7 @@ class TLDetector(object):
             return
         #using the actual sign of the traffic light instead of read from image
         state = int(msg.lights[self.nearest_light_index].state)
-        # rospy.loginfo("Image Classified.")
+        rospy.loginfo("Image Classified: " + str(state) + " at position " + str(msg.lights[self.nearest_light_index].pose.pose.position.x))
         if self.state != state:
             self.state_count = 0
             self.state = state

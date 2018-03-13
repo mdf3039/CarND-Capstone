@@ -101,7 +101,7 @@ class DBWNode(object):
         self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
                                          BrakeCmd, queue_size=1)
 
-        self.loop_rate = 10
+        self.loop_rate = 5
         self.loop() 
         # rospy.spin()
 
