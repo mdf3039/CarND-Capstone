@@ -20,7 +20,3 @@
 - **Farida Hamid**
         email: faridaaddala@gmail.com
         Udacity account: https://profiles.udacity.com/p/2466578619
-        
-- **Matthias Bartelmeß**
-        email: 
-        Udacity account: 

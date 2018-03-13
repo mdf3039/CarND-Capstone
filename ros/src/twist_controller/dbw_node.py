@@ -101,11 +101,12 @@ class DBWNode(object):
         self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
                                          BrakeCmd, queue_size=1)
 
+        self.loop_rate = 10
         self.loop() 
         # rospy.spin()
 
     def loop(self):
-        rate = rospy.Rate(5) # 1Hz
+        rate = rospy.Rate(self.loop_rate) # 1Hz
         while not rospy.is_shutdown():
             self.pose_cb(self.c_position)
             rate.sleep()
@@ -232,9 +233,11 @@ class DBWNode(object):
                     throttle, brake = min(.42,self.current_velocity*.1/5.36 + .15), 0
             elif self.drive_model >= 0:
                 #brake at a deceleration rate of current_velocity**2/(2*distance)
-                wp_2_pos = ((msg-self.base_waypoints[self.drive_model])**2).sum()
+                wp_2_pos = ((msg-self.base_waypoints[self.drive_model])**2).sum() - self.current_velocity*1.0/self.loop_rate
                 brake_rate = self.current_velocity**2/(2*wp_2_pos)
                 throttle, brake = 0, self.vehicle_mass*brake_rate*self.wheel_radius
+                if self.current_velocity<5:
+                    throttle, brake = 0, self.vehicle_mass*5
             # throttle, brake = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
             #                                                                     self.current_velocity, self.current_angular_velocity)
             if self.dbw_enabled_bool:

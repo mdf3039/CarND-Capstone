@@ -62,7 +62,7 @@ class TLDetector(object):
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
 
         self.bridge = CvBridge()
-        self.light_classifier = TLClassifier()
+        # self.light_classifier = TLClassifier()
         self.listener = tf.TransformListener()
 
         self.state = TrafficLight.UNKNOWN
@@ -75,12 +75,12 @@ class TLDetector(object):
         self.Yellow_Light = 1
         self.Red_Light = 0
         
-
+        self.loop_rate = 5
         self.loop()
         # rospy.spin()
 
     def loop(self):
-        rate = rospy.Rate(2) # 1Hz
+        rate = rospy.Rate(self.loop_rate) # 1Hz
         while not rospy.is_shutdown():
             self.actual_image_test(rospy.wait_for_message('/vehicle/traffic_lights', TrafficLightArray))
             # self.image_cb(rospy.wait_for_message('/image_color', Image))
@@ -223,6 +223,8 @@ class TLDetector(object):
         if (self.current_velocity<=2*slow_stop_point and nearest_light<=slow_stop_point**2 and traffic_light_value==self.Red_Light):
             None
         #if the distance to the nearest_light is more than the max_stop_distance, ignore it
+        #add on the current_velocity*rate to make sure it does not overlook the time gap
+        max_stop_distance += self.current_velocity*1.0/self.loop_rate
         elif nearest_light > max_stop_distance:
             stopping_waypoint_index = -1
         # else if the traffic light is Yellow or Red and the distance to the nearest light is more than the min_stop_distance
