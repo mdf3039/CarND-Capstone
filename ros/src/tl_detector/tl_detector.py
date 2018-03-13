@@ -219,12 +219,12 @@ class TLDetector(object):
         #obtain the maximum stopping distance by changing the acceleration limit to 6
         acceleration_limit -= 3.0
         max_stop_distance = .2*self.current_velocity + (self.current_velocity*(self.current_velocity-slow_stop_point)/acceleration_limit - acceleration_limit/2.0*((self.current_velocity-slow_stop_point)/acceleration_limit)**2) + (0.5*slow_stop_point**2)
+        #add on the current_velocity*rate to make sure it does not overlook the time gap
+        max_stop_distance += self.current_velocity*1.0/self.loop_rate
         #If the velocity is less than 2*slow_stop_point and the distance to the light is less than 2*(0.5*slow_stop_point**2) and the light is red
         if (self.current_velocity<=2*slow_stop_point and nearest_light<=slow_stop_point**2 and traffic_light_value==self.Red_Light):
             None
         #if the distance to the nearest_light is more than the max_stop_distance, ignore it
-        #add on the current_velocity*rate to make sure it does not overlook the time gap
-        max_stop_distance += self.current_velocity*1.0/self.loop_rate
         elif nearest_light > max_stop_distance:
             stopping_waypoint_index = -1
         # else if the traffic light is Yellow or Red and the distance to the nearest light is more than the min_stop_distance
