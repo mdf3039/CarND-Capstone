@@ -154,9 +154,9 @@ class DBWNode(object):
             #find and append the closest, fourth, and eighth point
             circle_points = self.base_waypoints[np.argmin(wp_distances)]
             # rospy.loginfo("circle_points: " + str(circle_points))
-            circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+5)%len(wp_distances)].copy()))
+            circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+5)%len(wp_distances)]))
             # rospy.loginfo("circle_points: " + str(circle_points.shape))
-            circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+10)%len(wp_distances)].copy()))
+            circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+10)%len(wp_distances)]))
             # rospy.loginfo("circle_points: " + str(circle_points.shape))
             #use the three points to find the radius of the circle
             eval_matrix = np.vstack((-2*circle_points[:,0],-2*circle_points[:,1],(circle_points**2).sum(axis=1))).T
