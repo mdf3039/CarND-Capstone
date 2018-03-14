@@ -37,8 +37,11 @@ class TLDetector(object):
         self.lights = []
         self.c_image = None
 
+        self.prev_stopping_waypoint_index = -1
         self.stopping_waypoint_index = -1
         self.stopping_waypoint_distance = 1000
+        self.prev_traffic_light_value = -1
+        self.prev_stopping_waypoint_index = -1
         self.nearest_light_index = None
 
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
@@ -75,8 +78,8 @@ class TLDetector(object):
         self.Yellow_Light = 1
         self.Red_Light = 0
         
-        self.loop_rate = 2
-        # self.loop()
+        self.loop_rate = 5
+        self.loop()
         # rospy.spin()
 
     def loop(self):
@@ -114,9 +117,14 @@ class TLDetector(object):
 
     def pose_cb(self, msg):
         self.pose = np.array([msg.pose.position.x,msg.pose.position.y])
+        if np.all(self.pose==self.prev_pose):
+            return
         # given the current position, find the closest traffic light stop line
-        if self.prev_pose is None or np.all(self.prev_pose == self.pose):
+        if self.prev_pose is None:
             self.prev_pose = self.pose - 0.1
+        #using the current velocity, project where the position will be in 0.5 seconds and use that as the position
+        #use the vector from the previous position
+        self.pose += (self.pose-self.prev_pose)/((self.pose-self.prev_pose)**2).sum() * 0.7*self.current_velocity
         # find the distances from the current position and the stop lines
         stop_line_positions = np.array(self.config['stop_line_positions'])
         traffic_light_distances = np.sqrt(((stop_line_positions-self.pose)**2).sum(axis=1))
@@ -138,8 +146,14 @@ class TLDetector(object):
         waypoint_dot_product_sign = np.sign(np.dot(self.base_waypoints-self.prev_pose, self.pose-self.prev_pose))
         base_waypoint_distances = np.multiply(base_waypoint_distances,waypoint_dot_product_sign)
         # Find the waypoint that is smaller than, but closest to, the nearest light distance
-        self.stopping_waypoint_distance = np.amax(base_waypoint_distances[np.where(base_waypoint_distances<=nearest_light)[0]])
-        self.stopping_waypoint_index  = np.where(base_waypoint_distances==self.stopping_waypoint_distance)[0][0]
+        if len(np.where(base_waypoint_distances<=nearest_light)[0])==0:
+            #the light was passed up. mark the distance as 0 and use the previous waypoint index
+            self.stopping_waypoint_distance = 0
+            self.stopping_waypoint_index = self.prev_stopping_waypoint_index
+        else:
+            self.stopping_waypoint_distance = np.amax(base_waypoint_distances[np.where(base_waypoint_distances<=nearest_light)[0]])
+            self.stopping_waypoint_index  = np.where(base_waypoint_distances==self.stopping_waypoint_distance)[0][0]
+            self.prev_stopping_waypoint_index = self.stopping_waypoint_index
         #the current position will be the previous position
         self.prev_pose = self.pose.copy()
 
@@ -221,14 +235,17 @@ class TLDetector(object):
         max_stop_distance = .2*self.current_velocity + (self.current_velocity*(self.current_velocity-slow_stop_point)/acceleration_limit - acceleration_limit/2.0*((self.current_velocity-slow_stop_point)/acceleration_limit)**2) + (0.5*slow_stop_point**2)
         #add on the current_velocity*rate to make sure it does not overlook the time gap
         max_stop_distance += self.current_velocity*1.0/self.loop_rate
-        #if the traffic light is green, ignore it.
-        if traffic_light_value==self.Green_Light:
+        #if the previous light was red and the car began to stop, continue stopping
+        if (traffic_light_value==self.Red_Light and self.prev_traffic_light_value==self.Red_Light and self.prev_stopping_waypoint_index>=0):
+            None
+        #else if the traffic light is green, ignore it.
+        elif traffic_light_value==self.Green_Light:
             stopping_waypoint_index = -1
         #If the velocity is less than 2*slow_stop_point and the distance to the light is less than 2*(0.5*slow_stop_point**2) and the light is red
-        elif (self.current_velocity<=2*slow_stop_point and nearest_light<=slow_stop_point**2 and traffic_light_value==self.Red_Light):
+        elif (self.current_velocity<=5 and nearest_light<=5 and traffic_light_value==self.Red_Light):
             None
         #if the distance to the nearest_light is more than the max_stop_distance, ignore it
-        elif nearest_light > max_stop_distance:
+        elif nearest_light > max(max_stop_distance,10):
             stopping_waypoint_index = -1
         # else if the traffic light is Yellow or Red and the distance to the nearest light is more than the min_stop_distance
         elif ((traffic_light_value==self.Red_Light or traffic_light_value==self.Yellow_Light) and nearest_light>min_stop_distance):
@@ -236,11 +253,10 @@ class TLDetector(object):
         #else if the traffic light is unknown, stopping waypoint will be -2, telling whatever previous action to keep proceeding
         elif traffic_light_value==self.Unknown_Light:
             stopping_waypoint_index = -2
-        # #else if the traffic light is green, ignore it.
-        # elif traffic_light_value==self.Green_Light:
-        #     stopping_waypoint_index = -1
         #publish the stopping waypoint index
         self.upcoming_red_light_pub.publish(stopping_waypoint_index)
+        self.prev_traffic_light_value = traffic_light_value
+        self.prev_stopping_waypoint_index = stopping_waypoint_index
 
 if __name__ == '__main__':
     try:
