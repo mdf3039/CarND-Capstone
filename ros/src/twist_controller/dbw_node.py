@@ -241,7 +241,7 @@ class DBWNode(object):
                 wp_2_pos = ((msg-self.base_waypoints[int(self.drive_model)])**2).sum() - self.current_velocity*1.0/self.loop_rate
                 brake_rate = self.current_velocity**2/(2*wp_2_pos)
                 throttle, brake = 0, self.vehicle_mass*brake_rate*self.wheel_radius
-                if self.current_velocity<5:
+                if wp_2_pos<3:
                     throttle, brake = 0, self.vehicle_mass*15
             # throttle, brake = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
             #                                                                     self.current_velocity, self.current_angular_velocity)

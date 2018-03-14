@@ -244,10 +244,10 @@ class TLDetector(object):
         #add on the current_velocity*rate to make sure it does not overlook the time gap
         max_stop_distance += self.current_velocity*1.0/self.loop_rate
         #if the previous light was red and the car began to stop, continue stopping
-        if (traffic_light_value==self.Red_Light and self.prev_traffic_light_value==self.Red_Light and self.prev_stopping_waypoint_index>=0):
-            None
+        # if (traffic_light_value==self.Red_Light and self.prev_traffic_light_value==self.Red_Light and self.prev_stopping_waypoint_index>=0):
+        #     None
         #else if the traffic light is green, ignore it.
-        elif traffic_light_value==self.Green_Light:
+        if traffic_light_value==self.Green_Light:
             stopping_waypoint_index = -1
         #If the velocity is less than 2*slow_stop_point and the distance to the light is less than 2*(0.5*slow_stop_point**2) and the light is red
         elif (self.current_velocity<=5 and nearest_light<=5 and traffic_light_value==self.Red_Light):
