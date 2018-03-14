@@ -40,6 +40,8 @@ class TLDetector(object):
         self.prev_stopping_waypoint_index = -1
         self.stopping_waypoint_index = -1
         self.stopping_waypoint_distance = 1000
+        self.prev_traffic_light_value = -1
+        self.prev_stopping_waypoint_index = -1
         self.nearest_light_index = None
 
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
@@ -233,8 +235,11 @@ class TLDetector(object):
         max_stop_distance = .2*self.current_velocity + (self.current_velocity*(self.current_velocity-slow_stop_point)/acceleration_limit - acceleration_limit/2.0*((self.current_velocity-slow_stop_point)/acceleration_limit)**2) + (0.5*slow_stop_point**2)
         #add on the current_velocity*rate to make sure it does not overlook the time gap
         max_stop_distance += self.current_velocity*1.0/self.loop_rate
+        #if the previous light was red and the car began to stop, continue stopping
+        if (traffic_light_value==self.Red_Light and self.prev_traffic_light_value==self.Red_Light and self.prev_stopping_waypoint_index>=0):
+            None
         #else if the traffic light is green, ignore it.
-        if traffic_light_value==self.Green_Light:
+        elif traffic_light_value==self.Green_Light:
             stopping_waypoint_index = -1
         #If the velocity is less than 2*slow_stop_point and the distance to the light is less than 2*(0.5*slow_stop_point**2) and the light is red
         elif (self.current_velocity<=5 and nearest_light<=5 and traffic_light_value==self.Red_Light):
@@ -253,6 +258,8 @@ class TLDetector(object):
         #     stopping_waypoint_index = -1
         #publish the stopping waypoint index
         # self.upcoming_red_light_pub.publish(stopping_waypoint_index)
+        self.prev_traffic_light_value = traffic_light_value
+        self.prev_stopping_waypoint_index = stopping_waypoint_index
         return stopping_waypoint_index
 
 if __name__ == '__main__':
