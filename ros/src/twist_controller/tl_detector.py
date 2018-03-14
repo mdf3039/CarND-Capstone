@@ -119,8 +119,10 @@ class TLDetector(object):
 
     def pose_cb(self, msg):
         self.pose = np.array([msg.pose.position.x,msg.pose.position.y])
+        if np.all(self.pose==self.prev_pose):
+            return
         # given the current position, find the closest traffic light stop line
-        if self.prev_pose is None or np.all(self.prev_pose == self.pose):
+        if self.prev_pose is None:
             self.prev_pose = self.pose - 0.1
         #using the current velocity, project where the position will be in 0.5 seconds and use that as the position
         #use the vector from the previous position

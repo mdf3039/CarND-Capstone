@@ -104,7 +104,7 @@ class DBWNode(object):
 
         #place the TLDETECTOR in the dbw for analysis
         # self.tl_detector = TLDetector()
-        self.loop_rate = 10
+        self.loop_rate = 5
         self.loop() 
         # rospy.spin()
 
@@ -149,7 +149,7 @@ class DBWNode(object):
             # rospy.loginfo("Delta Time: " + str(self.sample_time))
             self.prev_sample_time = time
         if self.base_waypoints is not None:
-            if msg[0]==self.prev_msg[0] and msg[1]==self.prev_msg[1]:
+            if np.all(msg==self.prev_msg):
                 steer_value,pid_step_cte = 0,0
             else:
                 #the distances from the current position for all waypoints

@@ -78,7 +78,7 @@ class TLDetector(object):
         self.Yellow_Light = 1
         self.Red_Light = 0
         
-        self.loop_rate = 5
+        self.loop_rate = 2
         self.loop()
         # rospy.spin()
 
