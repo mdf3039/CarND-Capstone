@@ -257,6 +257,7 @@ class DBWNode(object):
             self.light_msg = msg.data
         except:
             self.light_msg = msg
+            rospy.loginfo("The msg: " + str(self.light_msg))
         if self.light_msg==-2:
             # Unknown traffic light. Use previous model
             self.light_msg = self.prev_light_msg
