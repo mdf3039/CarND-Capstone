@@ -243,7 +243,7 @@ class DBWNode(object):
                 brake_rate = self.current_velocity**2/(2*wp_2_pos)
                 throttle, brake = 0, self.vehicle_mass*brake_rate*self.wheel_radius
                 if self.current_velocity<5:
-                    throttle, brake = 0, self.vehicle_mass*5
+                    throttle, brake = 0, self.vehicle_mass*15
             # throttle, brake = self.controller.control(self.min_speed, self.linear_velocity, self.angular_velocity, 
             #                                                                     self.current_velocity, self.current_angular_velocity)
             if self.dbw_enabled_bool:
