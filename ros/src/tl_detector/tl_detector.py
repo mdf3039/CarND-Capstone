@@ -92,6 +92,9 @@ class TLDetector(object):
     def actual_image_test(self, msg):
         if self.nearest_light_index is None:
             return
+        if self.nearest_light_index == np.inf:
+            self.upcoming_red_light_pub.publish(-1)
+            return
         #using the actual sign of the traffic light instead of read from image
         state = int(msg.lights[self.nearest_light_index].state)
         # rospy.loginfo("Image Classified: " + str(state) + " at position " + str(msg.lights[self.nearest_light_index].pose.pose.position.x) + "," + str(msg.lights[self.nearest_light_index].pose.pose.position.y))
@@ -124,7 +127,7 @@ class TLDetector(object):
             self.prev_pose = self.pose - 0.1
         #using the current velocity, project where the position will be in 0.5 seconds and use that as the position
         #use the vector from the previous position
-        self.pose += (self.pose-self.prev_pose)/((self.pose-self.prev_pose)**2).sum() * 0.7*self.current_velocity
+        self.pose += (self.pose-self.prev_pose)/((self.pose-self.prev_pose)**2).sum() * 0.2*self.current_velocity
         # find the distances from the current position and the stop lines
         stop_line_positions = np.array(self.config['stop_line_positions'])
         traffic_light_distances = np.sqrt(((stop_line_positions-self.pose)**2).sum(axis=1))
@@ -133,9 +136,14 @@ class TLDetector(object):
         # Multiply the traffic light distances by their respective sign. Positive distances mean in front of car
         traffic_light_distances = np.multiply(traffic_light_distances,dot_product_sign)
         #find the smallest positive distance to a traffic light
-        nearest_light = np.amin(traffic_light_distances[np.where(traffic_light_distances>=0)[0]])
-        #obtain the index for the actual traffic sign image test
-        self.nearest_light_index = np.where(traffic_light_distances==nearest_light)[0][0]
+        try:
+            nearest_light = np.amin(traffic_light_distances[np.where(traffic_light_distances>=0)[0]])
+            #obtain the index for the actual traffic sign image test
+            self.nearest_light_index = np.where(traffic_light_distances==nearest_light)[0][0]
+        except:
+            #there is no traffic light in front. 
+            nearest_light = 10000
+            self.nearest_light_index = np.inf
         if self.base_waypoints is None:
             # rospy.loginfo("THE BASE WAYPOINTS ARE NOT THERE")
             self.stopping_waypoint_index = 0
