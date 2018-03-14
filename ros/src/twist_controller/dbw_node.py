@@ -103,7 +103,7 @@ class DBWNode(object):
                                          BrakeCmd, queue_size=1)
 
         #place the TLDETECTOR in the dbw for analysis
-        tl_detector = TLDetector()
+        self.tl_detector = TLDetector()
         self.loop_rate = 5
         self.loop() 
         # rospy.spin()
@@ -111,7 +111,7 @@ class DBWNode(object):
     def loop(self):
         rate = rospy.Rate(self.loop_rate) # 1Hz
         while not rospy.is_shutdown():
-            self.traffic_cb(tl_detector.actual_image_test(rospy.wait_for_message('/vehicle/traffic_lights', TrafficLightArray)))
+            self.traffic_cb(self.tl_detector.actual_image_test(rospy.wait_for_message('/vehicle/traffic_lights', TrafficLightArray)))
             self.pose_cb(self.c_position)
             rate.sleep()
     
