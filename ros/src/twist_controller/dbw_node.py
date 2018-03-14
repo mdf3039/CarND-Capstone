@@ -237,7 +237,7 @@ class DBWNode(object):
                     throttle, brake = min(.42,self.current_velocity*.1/5.36 + .15), 0
             elif self.drive_model >= 0:
                 #brake at a deceleration rate of current_velocity**2/(2*distance)
-                wp_2_pos = ((msg-self.base_waypoints[self.drive_model])**2).sum() - self.current_velocity*1.0/self.loop_rate
+                wp_2_pos = ((msg-self.base_waypoints[int(self.drive_model)])**2).sum() - self.current_velocity*1.0/self.loop_rate
                 brake_rate = self.current_velocity**2/(2*wp_2_pos)
                 throttle, brake = 0, self.vehicle_mass*brake_rate*self.wheel_radius
                 if self.current_velocity<5:
