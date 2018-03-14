@@ -17,7 +17,7 @@ STATE_COUNT_THRESHOLD = 3
 
 class TLDetector(object):
     def __init__(self):
-        rospy.init_node('tl_detector')
+        # rospy.init_node('tl_detector')
 
         #Get the maximum velocity parameter
         self.maximum_velocity = self.kmph2mps(rospy.get_param('~velocity')) # change km/h to m/s
@@ -59,7 +59,7 @@ class TLDetector(object):
 
 
 
-        self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
+        # self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
 
         self.bridge = CvBridge()
         # self.light_classifier = TLClassifier()
@@ -223,8 +223,11 @@ class TLDetector(object):
         max_stop_distance = .2*self.current_velocity + (self.current_velocity*(self.current_velocity-slow_stop_point)/acceleration_limit - acceleration_limit/2.0*((self.current_velocity-slow_stop_point)/acceleration_limit)**2) + (0.5*slow_stop_point**2)
         #add on the current_velocity*rate to make sure it does not overlook the time gap
         max_stop_distance += self.current_velocity*1.0/self.loop_rate
+        #else if the traffic light is green, ignore it.
+        if traffic_light_value==self.Green_Light:
+            stopping_waypoint_index = -1
         #If the velocity is less than 2*slow_stop_point and the distance to the light is less than 2*(0.5*slow_stop_point**2) and the light is red
-        if (self.current_velocity<=2*slow_stop_point and nearest_light<=slow_stop_point**2 and traffic_light_value==self.Red_Light):
+        elif (self.current_velocity<=2*slow_stop_point and nearest_light<=slow_stop_point**2 and traffic_light_value==self.Red_Light):
             None
         #if the distance to the nearest_light is more than the max_stop_distance, ignore it
         elif nearest_light > max_stop_distance:
@@ -235,9 +238,9 @@ class TLDetector(object):
         #else if the traffic light is unknown, stopping waypoint will be -2, telling whatever previous action to keep proceeding
         elif traffic_light_value==self.Unknown_Light:
             stopping_waypoint_index = -2
-        #else if the traffic light is green, ignore it.
-        elif traffic_light_value==self.Green_Light:
-            stopping_waypoint_index = -1
+        # #else if the traffic light is green, ignore it.
+        # elif traffic_light_value==self.Green_Light:
+        #     stopping_waypoint_index = -1
         #publish the stopping waypoint index
         # self.upcoming_red_light_pub.publish(stopping_waypoint_index)
         return stopping_waypoint_index
