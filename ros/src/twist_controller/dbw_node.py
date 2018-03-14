@@ -2,9 +2,10 @@
 
 import rospy
 from std_msgs.msg import Bool, Float64, Int32
-from styx_msgs.msg import Lane
+from styx_msgs.msg import Lane, TrafficLightArray
 from dbw_mkz_msgs.msg import ThrottleCmd, SteeringCmd, BrakeCmd, SteeringReport
 from geometry_msgs.msg import TwistStamped, PoseStamped
+from tl_detector import TLDetector
 import math
 import numpy as np
 
@@ -101,6 +102,8 @@ class DBWNode(object):
         self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
                                          BrakeCmd, queue_size=1)
 
+        #place the TLDETECTOR in the dbw for analysis
+        tl_detector = TLDetector()
         self.loop_rate = 5
         self.loop() 
         # rospy.spin()
@@ -108,6 +111,7 @@ class DBWNode(object):
     def loop(self):
         rate = rospy.Rate(self.loop_rate) # 1Hz
         while not rospy.is_shutdown():
+            self.traffic_cb(tl_detector.actual_image_test(rospy.wait_for_message('/vehicle/traffic_lights', TrafficLightArray)))
             self.pose_cb(self.c_position)
             rate.sleep()
     
