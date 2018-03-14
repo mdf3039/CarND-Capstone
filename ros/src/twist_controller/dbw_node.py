@@ -251,7 +251,10 @@ class DBWNode(object):
     
     def traffic_cb(self, msg):
         #choose the model, depending upon the msg
-        self.light_msg = msg.data
+        try:
+            self.light_msg = msg.data
+        except:
+            self.light_msg = msg
         if self.light_msg==-2:
             # Unknown traffic light. Use previous model
             self.light_msg = self.prev_light_msg
