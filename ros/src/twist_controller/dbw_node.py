@@ -138,8 +138,6 @@ class DBWNode(object):
             return
         rospy.loginfo("Position is updated: " + str(msg.pose.position.x) + "," + str(msg.pose.position.y))
         msg = np.array([msg.pose.position.x, msg.pose.position.y])
-        if msg[0]==self.prev_msg[0] and msg[1]==self.prev_msg[1]:
-            return
         #Find the closest two waypoints given the position.
         self.steer = 0
         if self.prev_sample_time is None:
@@ -152,78 +150,79 @@ class DBWNode(object):
             self.prev_sample_time = time
         if self.base_waypoints is not None:
             if msg[0]==self.prev_msg[0] and msg[1]==self.prev_msg[1]:
-                return
-            #the distances from the current position for all waypoints
-            wp_distances = ((self.base_waypoints-msg)**2).sum(axis=1)
-            #find and append the closest, fourth, and eighth point
-            circle_points = self.base_waypoints[np.argmin(wp_distances)]
-            # rospy.loginfo("circle_points: " + str(circle_points))
-            circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+5)%len(wp_distances)]))
-            # rospy.loginfo("circle_points: " + str(circle_points.shape))
-            circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+10)%len(wp_distances)]))
-            # rospy.loginfo("circle_points: " + str(circle_points.shape))
-            #use the three points to find the radius of the circle
-            eval_matrix = np.vstack((-2*circle_points[:,0],-2*circle_points[:,1],(circle_points**2).sum(axis=1))).T
-            # rospy.loginfo("eval_matrix: " + str(eval_matrix.shape))
-            #subtract the last entry of the eval matrix from the others and keep the first two rows
-            eval_matrix = np.subtract(eval_matrix,eval_matrix[2])[0:2]
-            try:
-                x = np.linalg.solve(eval_matrix[:,0:2],eval_matrix[:,2])
-                # rospy.loginfo("X obtained: " + str(x))
-                radius = (((msg-x)**2).sum()*1.0)**(1.0/2)
-                # rospy.loginfo("Radius: " + str(radius))
-                #convert the angle into degrees then divide by the steering ratio to get the steer value
-                angle = np.arcsin(self.wheel_base/radius) #* (180.0/np.pi)
-                steer_value = angle * self.steer_ratio
-            except:
-                steer_value = 0
-            #the sign of the steer value depends on the slope from the first to the last point
-            two_closest_points = self.base_waypoints[np.sort(wp_distances.argsort()[:2])].copy()
-            # make sure the waypoints are in the correct order by comparing their distance from the previous midpoint
-            # keep the last two midpoints
-            if self.prev_midpoint is None:
-                self.two_closest_points = two_closest_points.copy()
-                self.prev_midpoint = np.divide(np.add(two_closest_points[0],two_closest_points[1]),2.0).copy()
-                self.prev_prev_midpoint = self.prev_midpoint.copy()
-            elif np.all(self.prev_midpoint==np.divide(np.add(two_closest_points[0],two_closest_points[1]),2.0)):
-                two_closest_points = self.two_closest_points.copy()
+                steer_value,pid_step_cte = 0,0
             else:
-                #if the midpoints are not equal, sort by proximity to the previous midpoint
-                # rospy.loginfo("Closest points may change: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
-                # rospy.loginfo("Closest points may change: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
-                self.two_closest_points = two_closest_points[((two_closest_points-self.prev_midpoint)**2).sum(axis=1).argsort()].copy()
-                two_closest_points = self.two_closest_points.copy()
-                self.prev_prev_midpoint = self.prev_midpoint.copy()
-                self.prev_midpoint = np.divide(np.add(two_closest_points[0],two_closest_points[1]),2.0).copy()
-            # rospy.loginfo("Closest points: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
-            # rospy.loginfo("Closest points: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
-            # get the direction for the steer value
-            if (np.cross(two_closest_points[0]-self.prev_prev_midpoint,circle_points[2]-self.prev_prev_midpoint)<0):
-                steer_value *= -1
-            if np.all(self.prev_prev_midpoint == self.prev_midpoint):
-                steer_value *= -1
-            self.cte = abs(np.linalg.norm(np.cross(two_closest_points[0]-two_closest_points[1], two_closest_points[1]-msg))/np.linalg.norm(two_closest_points[0]-two_closest_points[1]))
-            # rospy.loginfo("The CTE: " + str(self.cte))
-            #the cross product will determine the direction. if the cross product is positive, the the car is to the left, cte is negative
-            # rospy.loginfo("two_closest_points[0]-self.prev_prev_midpoint: " + str(two_closest_points[0]-self.prev_prev_midpoint))
-            # rospy.loginfo("msg-self.prev_prev_midpoint: " + str(msg-self.prev_prev_midpoint))
-            # rospy.loginfo("self.prev_prev_midpoint: " + str(self.prev_prev_midpoint))
-            # rospy.loginfo("np.cross: " + str(np.cross(two_closest_points[0]-self.prev_prev_midpoint,msg-self.prev_prev_midpoint)))
-            if (np.cross(two_closest_points[0]-self.prev_prev_midpoint,msg-self.prev_prev_midpoint)>0):
-                self.cte *= -1
-            if np.all(self.prev_prev_midpoint == self.prev_midpoint):
-                self.cte *= -1
-            # if ((course_midpoint-msg)**2).sum() < ((course_midpoint-self.prev_midpoint)**2).sum():
-            # rospy.loginfo("The CTE: " + str(self.cte))
-            kp_cte = 0.25#0.1 - .05*self.current_velocity/self.maximum_velocity###07 best is 0.31, .41
-            ki_cte = 0.0#16#.08 # 1.015
-            kd_cte = 0.5#0.25 + .20*self.current_velocity/self.maximum_velocity#5#.35 # 0.5
-            pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
-            self.prev_msg = msg
-            # rospy.loginfo("The steer value: " + str(steer_value))
-            # rospy.loginfo("The PID CTE: " + str(pid_step_cte))
-            # rospy.loginfo("The STR: " + str(steer_value+pid_step_angle+pid_step_cte))
-            # the drive model will determine the throttle and brake
+                #the distances from the current position for all waypoints
+                wp_distances = ((self.base_waypoints-msg)**2).sum(axis=1)
+                #find and append the closest, fourth, and eighth point
+                circle_points = self.base_waypoints[np.argmin(wp_distances)]
+                # rospy.loginfo("circle_points: " + str(circle_points))
+                circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+5)%len(wp_distances)]))
+                # rospy.loginfo("circle_points: " + str(circle_points.shape))
+                circle_points = np.vstack((circle_points, self.base_waypoints[(np.argmin(wp_distances)+10)%len(wp_distances)]))
+                # rospy.loginfo("circle_points: " + str(circle_points.shape))
+                #use the three points to find the radius of the circle
+                eval_matrix = np.vstack((-2*circle_points[:,0],-2*circle_points[:,1],(circle_points**2).sum(axis=1))).T
+                # rospy.loginfo("eval_matrix: " + str(eval_matrix.shape))
+                #subtract the last entry of the eval matrix from the others and keep the first two rows
+                eval_matrix = np.subtract(eval_matrix,eval_matrix[2])[0:2]
+                try:
+                    x = np.linalg.solve(eval_matrix[:,0:2],eval_matrix[:,2])
+                    # rospy.loginfo("X obtained: " + str(x))
+                    radius = (((msg-x)**2).sum()*1.0)**(1.0/2)
+                    # rospy.loginfo("Radius: " + str(radius))
+                    #convert the angle into degrees then divide by the steering ratio to get the steer value
+                    angle = np.arcsin(self.wheel_base/radius) #* (180.0/np.pi)
+                    steer_value = angle * self.steer_ratio
+                except:
+                    steer_value = 0
+                #the sign of the steer value depends on the slope from the first to the last point
+                two_closest_points = self.base_waypoints[np.sort(wp_distances.argsort()[:2])].copy()
+                # make sure the waypoints are in the correct order by comparing their distance from the previous midpoint
+                # keep the last two midpoints
+                if self.prev_midpoint is None:
+                    self.two_closest_points = two_closest_points.copy()
+                    self.prev_midpoint = np.divide(np.add(two_closest_points[0],two_closest_points[1]),2.0).copy()
+                    self.prev_prev_midpoint = self.prev_midpoint.copy()
+                elif np.all(self.prev_midpoint==np.divide(np.add(two_closest_points[0],two_closest_points[1]),2.0)):
+                    two_closest_points = self.two_closest_points.copy()
+                else:
+                    #if the midpoints are not equal, sort by proximity to the previous midpoint
+                    # rospy.loginfo("Closest points may change: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
+                    # rospy.loginfo("Closest points may change: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
+                    self.two_closest_points = two_closest_points[((two_closest_points-self.prev_midpoint)**2).sum(axis=1).argsort()].copy()
+                    two_closest_points = self.two_closest_points.copy()
+                    self.prev_prev_midpoint = self.prev_midpoint.copy()
+                    self.prev_midpoint = np.divide(np.add(two_closest_points[0],two_closest_points[1]),2.0).copy()
+                # rospy.loginfo("Closest points: " + str(two_closest_points[0][0]) + "," + str(two_closest_points[0][1]))
+                # rospy.loginfo("Closest points: " + str(two_closest_points[1][0]) + "," + str(two_closest_points[1][1]))
+                # get the direction for the steer value
+                if (np.cross(two_closest_points[0]-self.prev_prev_midpoint,circle_points[2]-self.prev_prev_midpoint)<0):
+                    steer_value *= -1
+                if np.all(self.prev_prev_midpoint == self.prev_midpoint):
+                    steer_value *= -1
+                self.cte = abs(np.linalg.norm(np.cross(two_closest_points[0]-two_closest_points[1], two_closest_points[1]-msg))/np.linalg.norm(two_closest_points[0]-two_closest_points[1]))
+                # rospy.loginfo("The CTE: " + str(self.cte))
+                #the cross product will determine the direction. if the cross product is positive, the the car is to the left, cte is negative
+                # rospy.loginfo("two_closest_points[0]-self.prev_prev_midpoint: " + str(two_closest_points[0]-self.prev_prev_midpoint))
+                # rospy.loginfo("msg-self.prev_prev_midpoint: " + str(msg-self.prev_prev_midpoint))
+                # rospy.loginfo("self.prev_prev_midpoint: " + str(self.prev_prev_midpoint))
+                # rospy.loginfo("np.cross: " + str(np.cross(two_closest_points[0]-self.prev_prev_midpoint,msg-self.prev_prev_midpoint)))
+                if (np.cross(two_closest_points[0]-self.prev_prev_midpoint,msg-self.prev_prev_midpoint)>0):
+                    self.cte *= -1
+                if np.all(self.prev_prev_midpoint == self.prev_midpoint):
+                    self.cte *= -1
+                # if ((course_midpoint-msg)**2).sum() < ((course_midpoint-self.prev_midpoint)**2).sum():
+                # rospy.loginfo("The CTE: " + str(self.cte))
+                kp_cte = 0.25#0.1 - .05*self.current_velocity/self.maximum_velocity###07 best is 0.31, .41
+                ki_cte = 0.0#16#.08 # 1.015
+                kd_cte = 0.5#0.25 + .20*self.current_velocity/self.maximum_velocity#5#.35 # 0.5
+                pid_step_cte = max(min(self.pid_controller_cte.step(self.cte, self.sample_time, kp_cte, ki_cte, kd_cte), 8), -8)
+                self.prev_msg = msg
+                # rospy.loginfo("The steer value: " + str(steer_value))
+                # rospy.loginfo("The PID CTE: " + str(pid_step_cte))
+                # rospy.loginfo("The STR: " + str(steer_value+pid_step_angle+pid_step_cte))
+                # the drive model will determine the throttle and brake
             if self.drive_model==-2:
                 throttle, brake = 0, 0
                 self.drive_model = self.prev_light_msg
