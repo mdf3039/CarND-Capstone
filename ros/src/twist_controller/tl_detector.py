@@ -37,6 +37,7 @@ class TLDetector(object):
         self.lights = []
         self.c_image = None
 
+        self.prev_stopping_waypoint_index = -1
         self.stopping_waypoint_index = -1
         self.stopping_waypoint_distance = 1000
         self.nearest_light_index = None
@@ -119,6 +120,9 @@ class TLDetector(object):
         # given the current position, find the closest traffic light stop line
         if self.prev_pose is None or np.all(self.prev_pose == self.pose):
             self.prev_pose = self.pose - 0.1
+        #using the current velocity, project where the position will be in 0.5 seconds and use that as the position
+        #use the vector from the previous position
+        self.pose += (self.pose-self.prev_pose)/((self.pose-self.prev_pose)**2).sum() * 0.5*self.current_velocity
         # find the distances from the current position and the stop lines
         stop_line_positions = np.array(self.config['stop_line_positions'])
         traffic_light_distances = np.sqrt(((stop_line_positions-self.pose)**2).sum(axis=1))
@@ -140,8 +144,14 @@ class TLDetector(object):
         waypoint_dot_product_sign = np.sign(np.dot(self.base_waypoints-self.prev_pose, self.pose-self.prev_pose))
         base_waypoint_distances = np.multiply(base_waypoint_distances,waypoint_dot_product_sign)
         # Find the waypoint that is smaller than, but closest to, the nearest light distance
-        self.stopping_waypoint_distance = np.amax(base_waypoint_distances[np.where(base_waypoint_distances<=nearest_light)[0]])
-        self.stopping_waypoint_index  = np.where(base_waypoint_distances==self.stopping_waypoint_distance)[0][0]
+        if len(np.where(base_waypoint_distances<=nearest_light)[0])==0:
+            #the light was passed up. mark the distance as 0 and use the previous waypoint index
+            self.stopping_waypoint_distance = 0
+            self.stopping_waypoint_index = self.prev_stopping_waypoint_index
+        else:
+            self.stopping_waypoint_distance = np.amax(base_waypoint_distances[np.where(base_waypoint_distances<=nearest_light)[0]])
+            self.stopping_waypoint_index  = np.where(base_waypoint_distances==self.stopping_waypoint_distance)[0][0]
+            self.prev_stopping_waypoint_index = self.stopping_waypoint_index
         #the current position will be the previous position
         self.prev_pose = self.pose.copy()
 
@@ -210,7 +220,7 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        stopping_waypoint_index = self.stopping_waypoint_index
+        stopping_waypoint_index = int(self.stopping_waypoint_index)
         nearest_light = self.stopping_waypoint_distance
         # the result of the image_cb function is in the equation below
         traffic_light_value = self.last_state

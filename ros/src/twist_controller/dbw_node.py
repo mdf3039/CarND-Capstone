@@ -236,8 +236,8 @@ class DBWNode(object):
                     #its current throttle can be estimated by proportioning (.1/5.36) it to the current velocity.
                     throttle, brake = min(.42,self.current_velocity*.1/5.36 + .15), 0
             elif self.drive_model >= 0:
-                rospy.loginfo("The self.drive_model: " + str(self.drive_model))
-                rospy.loginfo("The self.drive_model type : " + str(type(self.drive_model)))
+                # rospy.loginfo("The self.drive_model: " + str(self.drive_model))
+                # rospy.loginfo("The self.drive_model type : " + str(type(self.drive_model)))
                 #brake at a deceleration rate of current_velocity**2/(2*distance)
                 wp_2_pos = ((msg-self.base_waypoints[int(self.drive_model)])**2).sum() - self.current_velocity*1.0/self.loop_rate
                 brake_rate = self.current_velocity**2/(2*wp_2_pos)
@@ -257,7 +257,7 @@ class DBWNode(object):
             self.light_msg = msg.data
         except:
             self.light_msg = msg
-            rospy.loginfo("The msg: " + str(self.light_msg))
+            # rospy.loginfo("The msg: " + str(self.light_msg))
         if self.light_msg==-2:
             # Unknown traffic light. Use previous model
             self.light_msg = self.prev_light_msg
