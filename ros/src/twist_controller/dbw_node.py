@@ -277,6 +277,7 @@ class DBWNode(object):
                 #use the red drive model
                 self.drive_model = self.light_msg
         self.prev_light_msg = self.light_msg
+        rospy.loginfo("The self.drive_model: " + str(self.drive_model))
 
     def dbw_enabled_function(self,msg):
         self.dbw_enabled_bool =  msg.data
