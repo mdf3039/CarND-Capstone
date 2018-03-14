@@ -29,7 +29,7 @@ class TLDetector(object):
         # rospy.loginfo("The config sub sub type: " + str(self.config))
 
         self.pose = None
-        self.prev_pose = None
+        self.prev_pose = np.array([-1 , -1])
         self.waypoints = None
         self.camera_image = None
         self.current_pose = None
