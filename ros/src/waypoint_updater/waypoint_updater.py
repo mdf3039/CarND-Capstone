@@ -63,12 +63,12 @@ class WaypointUpdater(object):
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
         # self.traffic_waypoint = rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
 
-        # self.loop()
+        self.loop()
         # TODO: Add other member variables you need below
 
 
     def loop(self):
-        rate = rospy.Rate(10) # 1Hz
+        rate = rospy.Rate(5) # 1Hz
         while not rospy.is_shutdown():
             rospy.loginfo("THE current position: " + str(self.c_position))
             self.pose_cb(self.c_position)
