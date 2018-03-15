@@ -104,7 +104,7 @@ class DBWNode(object):
 
         #place the TLDETECTOR in the dbw for analysis
         # self.tl_detector = TLDetector()
-        self.loop_rate = 50
+        self.loop_rate = 10
         self.loop() 
         # rospy.spin()
 
