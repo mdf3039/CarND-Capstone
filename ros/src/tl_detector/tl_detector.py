@@ -65,7 +65,7 @@ class TLDetector(object):
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
 
         self.bridge = CvBridge()
-        # self.light_classifier = TLClassifier()
+        self.light_classifier = TLClassifier()
         self.listener = tf.TransformListener()
 
         self.state = TrafficLight.UNKNOWN
@@ -85,8 +85,8 @@ class TLDetector(object):
     def loop(self):
         rate = rospy.Rate(self.loop_rate) # 1Hz
         while not rospy.is_shutdown():
-            self.actual_image_test(rospy.wait_for_message('/vehicle/traffic_lights', TrafficLightArray))
-            # self.image_cb(rospy.wait_for_message('/image_color', Image))
+            # self.actual_image_test(rospy.wait_for_message('/vehicle/traffic_lights', TrafficLightArray))
+            self.image_cb(rospy.wait_for_message('/image_color', Image))
             rate.sleep()
 
     def actual_image_test(self, msg):
