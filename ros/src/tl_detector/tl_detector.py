@@ -239,7 +239,7 @@ class TLDetector(object):
         slow_stop_point = 0
         min_stop_distance = .2*self.current_velocity + (self.current_velocity*(self.current_velocity-slow_stop_point)/acceleration_limit - acceleration_limit/2.0*((self.current_velocity-slow_stop_point)/acceleration_limit)**2) + (0.5*slow_stop_point**2)
         #obtain the maximum stopping distance by changing the acceleration limit to 6
-        acceleration_limit -= 3.0
+        acceleration_limit -= 6.0
         max_stop_distance = .2*self.current_velocity + (self.current_velocity*(self.current_velocity-slow_stop_point)/acceleration_limit - acceleration_limit/2.0*((self.current_velocity-slow_stop_point)/acceleration_limit)**2) + (0.5*slow_stop_point**2)
         #add on the current_velocity*rate to make sure it does not overlook the time gap
         max_stop_distance += self.current_velocity*1.0/self.loop_rate
