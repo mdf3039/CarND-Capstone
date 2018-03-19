@@ -134,10 +134,10 @@ class TLDetector(object):
         # Find the sign of the dot product of the position vector and the traffic stop line vectors wrt the previous position
         dot_product_sign = np.sign(np.dot(stop_line_positions-self.prev_pose, self.pose-self.prev_pose))
         # Multiply the traffic light distances by their respective sign. Positive distances mean in front of car
-        traffic_light_distances = np.multiply(traffic_light_distances,dot_product_sign)
+        #traffic_light_distances = np.multiply(traffic_light_distances,dot_product_sign)
         #find the smallest positive distance to a traffic light
         try:
-            nearest_light = np.amin(traffic_light_distances[np.where(traffic_light_distances>=0)[0]])
+            nearest_light = np.min(np.where(traffic_light_distances >= 0, traffic_light_distances, np.inf))
             #obtain the index for the actual traffic sign image test
             self.nearest_light_index = np.where(traffic_light_distances==nearest_light)[0][0]
         except:
