@@ -127,7 +127,7 @@ class TLDetector(object):
             self.prev_pose = self.pose - 0.1
         #using the current velocity, project where the position will be in 0.5 seconds and use that as the position
         #use the vector from the previous position
-        self.pose += (self.pose-self.prev_pose)/((self.pose-self.prev_pose)**2).sum() * 0.2*self.current_velocity
+        self.pose += (self.pose-self.prev_pose)/np.sqrt(((self.pose-self.prev_pose)**2).sum()) * 0.2*self.current_velocity
         # find the distances from the current position and the stop lines
         stop_line_positions = np.array(self.config['stop_line_positions'])
         traffic_light_distances = np.sqrt(((stop_line_positions-self.pose)**2).sum(axis=1))

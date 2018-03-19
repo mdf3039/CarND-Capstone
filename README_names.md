@@ -14,8 +14,8 @@
         Udacity account: https://profiles.udacity.com/p/8345159856
         
 - **Darshanand Khusial**
-        email: 
-        Udacity account:         
+        email: (Given upon project submission to protect privacy)
+        Udacity account: https://profiles.udacity.com/p/3984568594
 
 - **Farida Hamid**
         email: faridaaddala@gmail.com
