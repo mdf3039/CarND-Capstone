@@ -249,6 +249,8 @@ class TLDetector(object):
         #else if the traffic light is green, ignore it.
         if traffic_light_value==self.Green_Light:
             stopping_waypoint_index = -1
+        elif (self.current_velocity > 3 and nearest_light<=80 and (traffic_light_value==self.Red_Light or traffic_light_value==self.Yellow_Light)):
+            None        
         #If the velocity is less than 2*slow_stop_point and the distance to the light is less than 2*(0.5*slow_stop_point**2) and the light is red
         elif (self.current_velocity<=5 and nearest_light<=5 and traffic_light_value==self.Red_Light):
             None
